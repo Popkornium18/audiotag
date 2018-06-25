@@ -12,7 +12,7 @@ pip install pytagger
 
 ## Usage
 
-Pytagger offeers different subcommands:
+Pytagger offers different subcommands:
 
 ```
 Usage:
@@ -95,7 +95,7 @@ The `clean` subcommand removes all tags from the file _except_ the `ENCODER` tag
 
 ## Dependencies
 
-The following dependencies are needed to rund Pytagger:
+The following dependencies are needed to run pytagger:
 
 * [docopt](https://pypi.org/project/docopt/): For parsing command line arguments
 * [pytaglib](https://pypi.org/project/pytaglib/): Python wrapper for accessing TagLib
