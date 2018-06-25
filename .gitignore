@@ -1,2 +1,5 @@
+build/
+dist/
+pytagger.egg-info/
 Pipfile
 Pipfile.lock
