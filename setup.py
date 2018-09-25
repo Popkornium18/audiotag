@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='audiotag',
-    version='0.0.1',
+    version='0.0.2',
     entry_points={
         'console_scripts': ['audiotag=audiotag.audiotag:main']
     },
@@ -21,5 +21,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
+        'Intended Audience :: End Users/Desktop',
     ),
+    install_requires=('docopt', 'pytaglib'),
 )

@@ -33,7 +33,7 @@ import os
 import sys
 import taglib
 
-args = docopt(__doc__, version='audiotag 0.0.1')
+args = docopt(__doc__, version='audiotag 0.0.2')
 
 
 # Removes all tags from the file, except the 'ENCODER' tag
