@@ -1,3 +1,4 @@
+ENV/
 build/
 dist/
 pytagger.egg-info/
