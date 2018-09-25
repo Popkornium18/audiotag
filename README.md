@@ -1,31 +1,31 @@
-# pytagger
+# audiotag
 
-Pytagger is a command line audio tagger written in python3. It uses [TagLib](http://taglib.org/) to write the metadata. It features a very simple to use interactive mode which lets you tag a single album as fast as possible.
+Audiotag is a command line audio tagger written in python3. It uses [TagLib](http://taglib.org/) to write the metadata. It features a very simple to use interactive mode which lets you tag a single album as fast as possible.
 
 ## Installation
 
-You can install pytagger directly from PyPI
+You can install audiotag directly from PyPI
 
 ```
-pip install pytagger
+pip install audiotag
 ```
 
 ## Usage
 
-Pytagger offers different subcommands:
+Audiotag offers different subcommands:
 
 ```
 Usage:
-  pytagger interactive <FILE>...
-  pytagger print <FILE>...
-  pytagger clean <FILE>...
-  pytagger rename [-p PATTERN] <FILE>...
+  audiotag interactive <FILE>...
+  audiotag print <FILE>...
+  audiotag clean <FILE>...
+  audiotag rename [-p PATTERN] <FILE>...
 ```
 
 The `print` subcommand prints all tags. Multiple values per tag will be printed as a list.
 
 ```
-$ pytagger print *.flac
+$ audiotag print *.flac
 Filename: /path/to/files/1 - At Giza.flac
 ALBUM: ['Conference of the Birds']
 ARTIST: ['Om']
@@ -51,10 +51,10 @@ TRACKNUMBER: ['2']
 TRACKTOTAL: ['2']
 ```
 
-The `interactive` subcommand interprets all given files as a single album and asks for all the necessary information. If the `Number of discs` value is anything greater than 1, pytagger will ask you which disk you are currently tagging. Otherwise the `DISCNUMBER` tag will also be set to 1. `Number of songs` is used to determine the number of leading zeroes when you use the `rename` subcommand.
+The `interactive` subcommand interprets all given files as a single album and asks for all the necessary information. If the `Number of discs` value is anything greater than 1, audiotag will ask you which disk you are currently tagging. Otherwise the `DISCNUMBER` tag will also be set to 1. `Number of songs` is used to determine the number of leading zeroes when you use the `rename` subcommand.
 
 ```
-$ pytagger interactive *.flac
+$ audiotag interactive *.flac
 Artist: Om
 Albumtitle: Conference of the Birds
 Genre: Doom Metal
@@ -78,13 +78,13 @@ The `rename` subcommand lets you rename files based on the audio tags. You have 
 * **{D}**: Discnumber
 * **{Y}**: Year
 
-You do _not_ have to add the extension to the pattern. Pytagger adds the extension to the output file name for you.
+You do _not_ have to add the extension to the pattern. Audiotag adds the extension to the output file name for you.
 
 ```
 $ ls
 01-at_giza.flac  02-flight_of_the_eagle.flac
 
-$ pytagger rename -p "{N} - {T}" *.flac
+$ audiotag rename -p "{N} - {T}" *.flac
 
 $ ls
 '1 - At Giza.flac'  '2 - Flight of the Eagle.flac'
@@ -95,7 +95,7 @@ The `clean` subcommand removes all tags from the file _except_ the `ENCODER` tag
 
 ## Dependencies
 
-The following dependencies are needed to run pytagger:
+The following dependencies are needed to run audiotag:
 
 * [docopt](https://pypi.org/project/docopt/): For parsing command line arguments
 * [pytaglib](https://pypi.org/project/pytaglib/): Python wrapper for accessing TagLib

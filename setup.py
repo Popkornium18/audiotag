@@ -4,17 +4,17 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='pytagger',
+    name='audiotag',
     version='0.0.1',
     entry_points={
-        'console_scripts': ['pytagger=pytagger.pytagger:main']
+        'console_scripts': ['audiotag=audiotag.audiotag:main']
     },
     author='Simon Rose',
     author_email='mail@popkornium18.de',
     description='A simple CLI audio tagger.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://gitlab.com/Popkornium18/pytagger',
+    url='https://gitlab.com/Popkornium18/audiotag',
     packages=setuptools.find_packages(),
     keywords=['audio', 'tag', 'taglib', 'mp3', 'flac', 'ogg'],
     classifiers=(

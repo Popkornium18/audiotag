@@ -1,12 +1,12 @@
 """
 
 Usage:
-  pytagger interactive <FILE>...
-  pytagger print <FILE>...
-  pytagger clean <FILE>...
-  pytagger rename [-p PATTERN] <FILE>...
-  pytagger (-h | --help)
-  pytagger (-v | --version)
+  audiotag interactive <FILE>...
+  audiotag print <FILE>...
+  audiotag clean <FILE>...
+  audiotag rename [-p PATTERN] <FILE>...
+  audiotag (-h | --help)
+  audiotag (-v | --version)
 
 Arguments:
     FILE    List of files to work with
@@ -33,7 +33,7 @@ import os
 import sys
 import taglib
 
-args = docopt(__doc__, version='pytagger 0.0.1')
+args = docopt(__doc__, version='audiotag 0.0.1')
 
 
 # Removes all tags from the file, except the 'ENCODER' tag
@@ -126,7 +126,7 @@ def open_files():
             tracklist.append(track)
         except OSError:
             print("Unable to open file '{0}'".format(filename))
-    # Exit pytagger if no tracks could be opened
+    # Exit audiotag if no tracks could be opened
     if not tracklist:
         sys.exit(1)
     return tracklist
