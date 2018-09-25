@@ -1,6 +1,6 @@
 ENV/
 build/
 dist/
-pytagger.egg-info/
+audiotag.egg-info/
 Pipfile
 Pipfile.lock
