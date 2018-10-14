@@ -1,5 +1,4 @@
 """
-
 Usage:
   audiotag print FILE...
   audiotag interactive FILE...
@@ -11,7 +10,7 @@ Usage:
                [--discnumber=DISCNUMBER|--nodiscnumber]
                [--disctotal=DISCTOTAL|--nodisctotal] FILE...
   audiotag clean FILE...
-  audiotag rename [-p PATTERN] FILE...
+  audiotag rename [--pattern=PATTERN] FILE...
   audiotag -h | --help
   audiotag -v | --version
 
@@ -33,8 +32,9 @@ Arguments:
 Options:
   -h --help     Show this screen.
   -v --version  Show version.
-
 """
+
+
 from docopt import docopt
 import math
 import os
@@ -83,7 +83,8 @@ def interactive_mode(tracklist):
 
 def set_mode(tracklist):
     tags = ['ALBUM', 'ARTIST', 'GENRE', 'DATE', 'DISCNUMBER', 'DISCTOTAL',
-            'TRACKNUMBER', 'TRACKTOTAL', 'TITLE']
+            'TRACKNUMBER', 'TRACKTOTAL', 'TITLE'
+            ]
     for track in tracklist:
         modified = False
         for tag in tags:
@@ -114,36 +115,54 @@ def clean_mode(tracklist):
 
 
 def rename_mode(tracklist):
-    if not args['PATTERN']:
-        print("omitting 'string' is not implemented yet")
-        exit(1)
-    padding = int(math.log10(len(tracklist))) + 1
     for track in tracklist:
-        filename_map = {}
+        if not args['--pattern']:
+            try:
+                if track.tags['DISCTOTAL'][0] == '1':
+                    pattern = '{N} - {T}'
+                else:
+                    pattern = '{D}-{N} - {T}'
+            except KeyError:
+                pattern = '{N} - {T}'
+        else:
+            pattern = args['--pattern']
+        print(pattern)
+
         try:
-            # Load everything that can be used to rename a file in a map
-            # and replace '/' to prevent errors
-            # Multiple tags are not supported, therefore [0] is used
-            filename_map['A'] = track.tags['ARTIST'][0].replace('/', '-')
-            filename_map['T'] = track.tags['TITLE'][0].replace('/', '-')
-            filename_map['L'] = track.tags['ALBUM'][0].replace('/', '-')
-            filename_map['Y'] = track.tags['DATE'][0]
-            filename_map['G'] = track.tags['GENRE'][0].replace('/', '-')
-            filename_map['N'] = track.tags['TRACKNUMBER'][0].zfill(padding)
-            filename_map['D'] = track.tags['DISCNUMBER'][0]
-            filename_map['NO'] = track.tags['TRACKTOTAL'][0]
-            filename_map['DO'] = track.tags['DISCTOTAL'][0]
-            # Create the new filename, without path or file extension
-            new_basename = args['PATTERN'].format(**filename_map)
-            # Returns ('/path/to', 'file.flac')
-            path, old_fullname = os.path.split(track.path)
-            # Returns ('file', '.flac')
-            old_basename, extension = os.path.splitext(old_fullname)
-            old_name = '{0}/{1}{2}'.format(path, old_basename, extension)
-            new_name = '{0}/{1}{2}'.format(path, new_basename, extension)
-            os.rename(old_name, new_name)
+            # Calculate number of leading zeros from 'TRACKTOTAL' tag
+            padding = int(math.log10(int(track.tags['TRACKTOTAL'][0]))) + 1
         except KeyError as err:
-            print("Error: '{0}' is missing tag {1}".format(track.path, err))
+            print("Warning: '{0}' is missing tag {1}".format(track.path, err))
+            print("Guessing number of leading zeros from tracklist")
+            # Fallback to tracklist length if 'TRACKTOTAL' is missing
+            padding = int(math.log10(len(tracklist))) + 1
+
+        # Map all tags to their keys for easier renaming
+        filename_map = {}
+        keys = ['A', 'T', 'L', 'Y', 'G', 'N', 'D', 'NO', 'DO']
+        tagnames = ['ARTIST', 'TITLE', 'ALBUM', 'DATE', 'GENRE', 'TRACKNUMBER',
+                    'DISCNUMBER', 'TRACKTOTAL', 'DISCTOTAL'
+                    ]
+        for k, t in zip(keys, tagnames):
+            try:
+                value = track.tags[t][0].replace('/', '-')
+                if t == "TRACKNUMBER":
+                    value = value.zfill(padding)  # Add leading zero(s)
+                filename_map[k] = value
+            except KeyError as err:
+                print("Warning: '{0}' is missing tag {1}".format(track.path,
+                                                                 err))
+                filename_map[k] = ''
+
+        # Create the new filename, without path or file extension
+        new_basename = pattern.format(**filename_map)
+        # Returns ('/path/to', 'file.flac')
+        path, old_fullname = os.path.split(track.path)
+        # Returns ('file', '.flac')
+        old_basename, extension = os.path.splitext(old_fullname)
+        old_name = '{0}/{1}{2}'.format(path, old_basename, extension)
+        new_name = '{0}/{1}{2}'.format(path, new_basename, extension)
+        os.rename(old_name, new_name)
 
 
 def open_files():
@@ -177,5 +196,5 @@ def main():
 
 
 if __name__ == "__main__":
-    args = docopt(__doc__, version='audiotag 0.0.2')
+    args = docopt(__doc__, version='audiotag 0.1.0')
     main()
