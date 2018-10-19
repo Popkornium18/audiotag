@@ -12,6 +12,8 @@ You can install audiotag directly from PyPI.
 pip install audiotag
 ```
 
+If you are running **Arch Linux** you can install it from the **AUR**. The package is called [`audiotag`](https://aur.archlinux.org/packages/audiotag/).
+
 ## Usage
 
 Audiotag offers different subcommands:
