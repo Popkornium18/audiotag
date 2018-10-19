@@ -41,6 +41,8 @@ import os
 import sys
 import taglib
 
+args = docopt(__doc__, version='audiotag 0.1.1')
+
 
 def print_mode(tracklist):
     for track in tracklist:
@@ -196,5 +198,4 @@ def main():
 
 
 if __name__ == "__main__":
-    args = docopt(__doc__, version='audiotag 0.1.0')
     main()
