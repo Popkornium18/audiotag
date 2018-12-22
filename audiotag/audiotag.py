@@ -41,7 +41,7 @@ import os
 import sys
 import taglib
 
-args = docopt(__doc__, version='audiotag 0.1.1')
+args = docopt(__doc__, version='audiotag 0.1.2')
 
 
 def print_mode(tracklist):
@@ -128,7 +128,6 @@ def rename_mode(tracklist):
                 pattern = '{N} - {T}'
         else:
             pattern = args['--pattern']
-        print(pattern)
 
         try:
             # Calculate number of leading zeros from 'TRACKTOTAL' tag
