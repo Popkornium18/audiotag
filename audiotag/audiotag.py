@@ -10,26 +10,27 @@ Usage:
                [--discnumber=DISCNUMBER|--nodiscnumber]
                [--disctotal=DISCTOTAL|--nodisctotal] FILE...
   audiotag clean FILE...
-  audiotag rename [--pattern=PATTERN] FILE...
+  audiotag rename [--pattern=PATTERN] [-f] FILE...
   audiotag -h | --help
   audiotag -v | --version
 
 Arguments:
-    FILE    List of files to work with
+    FILE     List of files to work with
     PATTERN  Formatting string for renaming files
-            May contain the following tags
-                {A}  Artist
-                {T}  Title
-                {L}  Album
-                {Y}  Date
-                {G}  Genre
-                {N}  Tracknumber
-                {D}  Discnumber
-                {NT}  Tracktotal
-                {DT}  Disctotal
-            Defaults to '{N} - {T}' or '{D}-{N} - {T}' (if {D} is > 1)
+             May contain the following tags
+                 {A}   Artist
+                 {T}   Title
+                 {L}   Album
+                 {Y}   Date
+                 {G}   Genre
+                 {N}   Tracknumber
+                 {D}   Discnumber
+                 {NT}  Tracktotal
+                 {DT}  Disctotal
+             Defaults to '{N} - {T}' or '{D}-{N} - {T}' (if {D} is > 1)
 
 Options:
+  -f --force    Overwrite existing files without confirmations
   -h --help     Show this screen.
   -v --version  Show version.
 """
@@ -38,13 +39,15 @@ Options:
 from docopt import docopt
 import math
 import os
+import readline #NOQA
 import sys
 import taglib
 
-args = docopt(__doc__, version='audiotag 0.1.2')
+args = docopt(__doc__, version='audiotag 0.2.0')
+tracklist = []
 
 
-def print_mode(tracklist):
+def print_mode():
     for track in tracklist:
         print('Filename: {0}'.format(track.path))
         for tag, value in track.tags.items():
@@ -52,7 +55,7 @@ def print_mode(tracklist):
         print('')
 
 
-def interactive_mode(tracklist):
+def interactive_mode():
     artist = input('Artist: ')
     album = input('Albumtitle: ')
     genre = input('Genre: ')
@@ -83,10 +86,9 @@ def interactive_mode(tracklist):
         track.save()
 
 
-def set_mode(tracklist):
+def set_mode():
     tags = ['ALBUM', 'ARTIST', 'GENRE', 'DATE', 'DISCNUMBER', 'DISCTOTAL',
-            'TRACKNUMBER', 'TRACKTOTAL', 'TITLE'
-            ]
+            'TRACKNUMBER', 'TRACKTOTAL', 'TITLE']
     for track in tracklist:
         modified = False
         for tag in tags:
@@ -105,7 +107,7 @@ def set_mode(tracklist):
             track.save()
 
 
-def clean_mode(tracklist):
+def clean_mode():
     for track in tracklist:
         try:
             # Keep ENCODER tag if it exists
@@ -116,45 +118,11 @@ def clean_mode(tracklist):
         track.save()
 
 
-def rename_mode(tracklist):
+def rename_mode():
     for track in tracklist:
-        if not args['--pattern']:
-            try:
-                if track.tags['DISCTOTAL'][0] == '1':
-                    pattern = '{N} - {T}'
-                else:
-                    pattern = '{D}-{N} - {T}'
-            except KeyError:
-                pattern = '{N} - {T}'
-        else:
-            pattern = args['--pattern']
-
-        try:
-            # Calculate number of leading zeros from 'TRACKTOTAL' tag
-            padding = int(math.log10(int(track.tags['TRACKTOTAL'][0]))) + 1
-        except KeyError as err:
-            print("Warning: '{0}' is missing tag {1}".format(track.path, err))
-            print("Guessing number of leading zeros from tracklist")
-            # Fallback to tracklist length if 'TRACKTOTAL' is missing
-            padding = int(math.log10(len(tracklist))) + 1
-
+        pattern = get_pattern(track)
         # Map all tags to their keys for easier renaming
-        filename_map = {}
-        keys = ['A', 'T', 'L', 'Y', 'G', 'N', 'D', 'NO', 'DO']
-        tagnames = ['ARTIST', 'TITLE', 'ALBUM', 'DATE', 'GENRE', 'TRACKNUMBER',
-                    'DISCNUMBER', 'TRACKTOTAL', 'DISCTOTAL'
-                    ]
-        for k, t in zip(keys, tagnames):
-            try:
-                value = track.tags[t][0].replace('/', '-')
-                if t == "TRACKNUMBER":
-                    value = value.zfill(padding)  # Add leading zero(s)
-                filename_map[k] = value
-            except KeyError as err:
-                print("Warning: '{0}' is missing tag {1}".format(track.path,
-                                                                 err))
-                filename_map[k] = ''
-
+        filename_map = get_filename_map(track)
         # Create the new filename, without path or file extension
         new_basename = pattern.format(**filename_map)
         # Returns ('/path/to', 'file.flac')
@@ -163,11 +131,64 @@ def rename_mode(tracklist):
         old_basename, extension = os.path.splitext(old_fullname)
         old_name = '{0}/{1}{2}'.format(path, old_basename, extension)
         new_name = '{0}/{1}{2}'.format(path, new_basename, extension)
+        if old_name == new_name:
+            continue
+        if os.path.isfile(new_name) and not args['--force']:
+            question = """File '{0}' already exists.
+Overwrite it? (y/n): """.format(new_name)
+            if not yes_no(question):
+                continue
         os.rename(old_name, new_name)
 
 
+def get_filename_map(track):
+    filename_map = {}
+    keys = ['A', 'T', 'L', 'Y', 'G', 'N', 'D', 'NO', 'DO']
+    tagnames = ['ARTIST', 'TITLE', 'ALBUM', 'DATE', 'GENRE', 'TRACKNUMBER',
+                'DISCNUMBER', 'TRACKTOTAL', 'DISCTOTAL']
+    try:
+        # Calculate number of leading zeros from 'TRACKTOTAL' tag
+        padding = int(math.log10(int(track.tags['TRACKTOTAL'][0]))) + 1
+    except KeyError as err:
+        print("Warning: '{0}' is missing tag {1}".format(track.path, err))
+        print("Guessing number of leading zeros from tracklist")
+        # Fallback to tracklist length if 'TRACKTOTAL' is missing
+        padding = int(math.log10(len(tracklist))) + 1
+
+    for k, t in zip(keys, tagnames):
+        try:
+            value = track.tags[t][0].replace('/', '-')
+            if t == "TRACKNUMBER":
+                value = value.zfill(padding)  # Add leading zero(s)
+            filename_map[k] = value
+        except KeyError as err:
+            print("Warning: '{0}' is missing tag {1}".format(track.path, err))
+            filename_map[k] = ''
+    return filename_map
+
+
+def get_pattern(track):
+    if not args['--pattern']:
+        try:
+            if track.tags['DISCTOTAL'] == '1':
+                return '{N} - {T}'
+            else:
+                return '{D}-{N} - {T}'
+        except KeyError:
+            return '{N} - {T}'
+    else:
+        return args['--pattern']
+
+
+def yes_no(question):
+    yesno_map = {'y': True, 'n': False}
+    choice = ''
+    while choice not in ['y', 'n']:
+        choice = input(question).lower()
+    return yesno_map[choice]
+
+
 def open_files():
-    tracklist = []
     for filename in args['FILE']:
         filename = os.path.abspath(filename)
         try:
@@ -183,17 +204,17 @@ def open_files():
 
 
 def main():
-    tracklist = open_files()
+    open_files()
     if args['print']:
-        print_mode(tracklist)
+        print_mode()
     elif args['set']:
-        set_mode(tracklist)
+        set_mode()
     elif args['clean']:
-        clean_mode(tracklist)
+        clean_mode()
     elif args['interactive']:
-        interactive_mode(tracklist)
+        interactive_mode()
     elif args['rename']:
-        rename_mode(tracklist)
+        rename_mode()
 
 
 if __name__ == "__main__":
