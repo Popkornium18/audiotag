@@ -30,7 +30,9 @@ Usage:
                [--discnumber=DISCNUMBER|--nodiscnumber]
                [--disctotal=DISCTOTAL|--nodisctotal] FILE...
   audiotag clean FILE...
-  audiotag rename [--pattern=PATTERN] FILE...
+  audiotag rename [--pattern=PATTERN] [-f] FILE...
+  audiotag -h | --help
+  audiotag -v | --version
 ```
 
 ### Print
@@ -152,8 +154,9 @@ $ audiotag rename *.flac
 
 $ ls
 '1 - At Giza.flac'  '2 - Flight of the Eagle.flac'
-
 ```
+
+If the new filename already exists Audiotag will ask if you want to overwrite the existing file. This check can be disabled with the `-f` or `--force` option.
 
 ## Dependencies
 
@@ -161,3 +164,6 @@ The following dependencies are needed to run audiotag:
 
 * [docopt](https://pypi.org/project/docopt/): For parsing command line arguments
 * [pytaglib](https://pypi.org/project/pytaglib/): Python wrapper for accessing TagLib
+
+Optional dependencies are:
+* [gnureadline](https://pypi.org/project/gnureadline/): For better user input (Readline should already be installed on any Linux system)

@@ -39,9 +39,12 @@ Options:
 from docopt import docopt
 import math
 import os
-import readline #NOQA
 import sys
 import taglib
+try:
+    import readline #NOQA
+except ImportError:
+    print("Module 'readline' not found")
 
 args = docopt(__doc__, version='audiotag 0.2.0')
 tracklist = []
