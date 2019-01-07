@@ -46,7 +46,7 @@ try:
 except ImportError:
     print("Module 'readline' not found")
 
-args = docopt(__doc__, version='audiotag 0.2.0')
+args = docopt(__doc__, version='audiotag 0.2.1')
 tracklist = []
 
 
@@ -173,7 +173,7 @@ def get_filename_map(track):
 def get_pattern(track):
     if not args['--pattern']:
         try:
-            if track.tags['DISCTOTAL'] == '1':
+            if track.tags['DISCTOTAL'][0] == '1':
                 return '{N} - {T}'
             else:
                 return '{D}-{N} - {T}'
