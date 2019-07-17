@@ -24,13 +24,12 @@ Usage:
   audiotag interactive FILE...
   audiotag set [--artist=ARTIST|--noartist] [--title=TITLE|--notitle]
                [--album=ALBUM|--noalbum] [--date=DATE|--nodate]
-               [--genre=GENRE|--nogenre]
-               [--tracknumber=TRACKNUMBER|--notracknumber]
-               [--tracktotal=TRACKTOTAL|--notracktotal]
-               [--discnumber=DISCNUMBER|--nodiscnumber]
+               [--genre=GENRE|--nogenre] [--tracknumber=TRACKNUMBER|--notracknumber]
+               [--tracktotal=TRACKTOTAL|--notracktotal] [--discnumber=DISCNUMBER|--nodiscnumber]
                [--disctotal=DISCTOTAL|--nodisctotal] FILE...
   audiotag clean FILE...
   audiotag rename [--pattern=PATTERN] [-f] FILE...
+  audiotag copy SOURCEFOLDER DESTFOLDER
   audiotag -h | --help
   audiotag -v | --version
 ```
@@ -157,6 +156,11 @@ $ ls
 ```
 
 If the new filename already exists Audiotag will ask if you want to overwrite the existing file. This check can be disabled with the `-f` or `--force` option.
+
+### Copy
+The `copy` subcommand copies the tags from all the files in the sourcefolder to corresponding files in the destination folder.
+The filenames are sorted alphabetically before they are matched.
+Note that the `ENCODER` tag ist _not_ copied.
 
 ## Dependencies
 
