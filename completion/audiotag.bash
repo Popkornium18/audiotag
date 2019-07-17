@@ -1,12 +1,11 @@
-#!/usr/bin/env bash
-
+#TODO: lint and redo this
 _audiotag_completions()
 {
 	compopt +o default
 	COMP_WORDBREAKS=${COMP_WORDBREAKS//=}
 	local cur=${COMP_WORDS[COMP_CWORD]}
 	local lastcommand=$(_audiotag_lastcommand)
-	local commands=(print interactive set clean rename -v -h --version --help)
+	local commands=(print interactive set clean copy rename -v -h --version --help)
 	local rename_commands=(--pattern= --force -f)
 	local set_commands=(--noartist --notitle --noalbum --nodate --nogenre\
 		--notracknumber --notracktotal --nodiscnumber --nodisctotal\
@@ -19,6 +18,10 @@ _audiotag_completions()
 		case ${lastcommand} in
 			print|interactive|clean)
 				compopt -o default
+				COMPREPLY=()
+				;;
+			copy)
+				compopt -o dirnames
 				COMPREPLY=()
 				;;
 			rename)
