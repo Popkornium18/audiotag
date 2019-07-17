@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='audiotag',
-    version='0.2.1',
+    version='0.3.0',
     entry_points={
         'console_scripts': ['audiotag=audiotag.audiotag:main']
     },
