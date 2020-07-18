@@ -47,7 +47,7 @@ try:
 except ImportError:
     print('Module \'readline\' not found')
 
-ARGS = docopt(__doc__, version='audiotag 0.2.1')
+ARGS = docopt(__doc__, version='audiotag 0.3.1')
 
 def print_mode():
     '''Prints all filenames and their tags and correspondig values.'''
@@ -140,7 +140,7 @@ def copy_mode():
             srcfile.tags['ENCODER'] = dstfile.tags['ENCODER']
         except KeyError:
             # Encoder not present in dstfile, so delete it before copying
-            del srcfile.tags['ENCODER']
+            srcfile.tags.pop('ENCODER', None)
         dstfile.tags = srcfile.tags
         dstfile.save()
 
