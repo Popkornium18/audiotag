@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+import audiotag.audiotag as audiotag
+
+if __name__ == "__main__":
+    audiotag.main()
