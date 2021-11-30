@@ -1,0 +1,181 @@
+from __future__ import annotations
+import os
+import shutil
+from typing import TYPE_CHECKING
+import pytest
+from audiotag.track import Track, Tag
+from audiotag.modes import clean_mode, copy_mode, print_mode, rename_mode
+from fixtures import FakeTag, fixture_audio_file
+
+if TYPE_CHECKING:
+    from typing import Dict, Any
+
+
+@pytest.mark.usefixtures("audio_file")
+def test_print_mode(audio_file: Track, capfd):
+    audio_file.close()
+    expected = f"""Filename: {str(audio_file.file)}
+{Tag.ALBUM.name}: {[FakeTag.ALBUM.value]}
+{Tag.ARTIST.name}: {[FakeTag.ARTIST.value]}
+{Tag.DATE.name}: {[str(FakeTag.DATE.value)]}
+{Tag.DISCNUMBER.name}: {[str(FakeTag.DISCNUMBER.value)]}
+{Tag.DISCTOTAL.name}: {[str(FakeTag.DISCTOTAL.value)]}
+{Tag.ENCODER.name}: {[FakeTag.ENCODER.value]}
+{Tag.GENRE.name}: {[FakeTag.GENRE.value]}
+{Tag.TITLE.name}: {[FakeTag.TITLE.value]}
+{Tag.TRACKNUMBER.name}: {[str(FakeTag.TRACKNUMBER.value)]}
+{Tag.TRACKTOTAL.name}: {[str(FakeTag.TRACKTOTAL.value)]}
+
+"""
+    args: Dict[str, Any] = {
+        "FILE": [audio_file.path],
+    }
+    error_code = print_mode(args)
+    stdout, stderr = capfd.readouterr()
+    assert not error_code
+    assert not stderr
+    assert stdout == expected
+
+
+@pytest.mark.usefixtures("audio_file")
+def test_clean_mode(audio_file: Track):
+    audio_file.close()
+    args: Dict[str, Any] = {
+        "FILE": [audio_file.path],
+    }
+    error_code = clean_mode(args)
+    assert not error_code
+    cleaned_file = Track.open_file(audio_file.file)
+    assert cleaned_file
+    assert cleaned_file.has_tag(Tag.ENCODER)
+    assert not cleaned_file.has_tag(Tag.ALBUM)
+    assert not cleaned_file.has_tag(Tag.ARTIST)
+    assert not cleaned_file.has_tag(Tag.DATE)
+    assert not cleaned_file.has_tag(Tag.DISCNUMBER)
+    assert not cleaned_file.has_tag(Tag.DISCTOTAL)
+    assert not cleaned_file.has_tag(Tag.GENRE)
+    assert not cleaned_file.has_tag(Tag.TITLE)
+    assert not cleaned_file.has_tag(Tag.TRACKNUMBER)
+    assert not cleaned_file.has_tag(Tag.TRACKTOTAL)
+
+
+def test_copy_mode_dir_not_exist():
+    args: Dict[str, Any] = {
+        "SOURCEFOLDER": "DoesNotExist",
+        "DESTFOLDER": "DoesNotExistEither",
+    }
+    error_code = copy_mode(args)
+    assert error_code == 1
+
+
+@pytest.mark.usefixtures("audio_file")
+def test_copy_mode_too_many_files(audio_file: Track):
+    audio_file.close()
+    src = audio_file.file.parent / "src"
+    dst = audio_file.file.parent / "dst"
+    os.mkdir(src)
+    os.mkdir(dst)
+    shutil.copyfile(audio_file.file, src / audio_file.file.name)
+    shutil.copyfile(audio_file.file, src / ("lmao" + audio_file.file.suffix))
+    shutil.move(audio_file.file, dst / audio_file.file.name)
+    args: Dict[str, Any] = {
+        "SOURCEFOLDER": str(src),
+        "DESTFOLDER": str(dst),
+    }
+    error_code = copy_mode(args)
+    assert error_code == 1
+
+
+@pytest.mark.usefixtures("audio_file")
+def test_copy_mode(audio_file: Track):
+    src = audio_file.file.parent / "src"
+    dst = audio_file.file.parent / "dst"
+    os.mkdir(src)
+    os.mkdir(dst)
+    shutil.copyfile(audio_file.file, src / audio_file.file.name)
+    audio_file.clear_tags(keep=[])
+    audio_file.save()
+    audio_file.close()
+    shutil.move(audio_file.file, dst / audio_file.file.name)
+    args: Dict[str, Any] = {
+        "SOURCEFOLDER": str(src),
+        "DESTFOLDER": str(dst),
+    }
+    error_code = copy_mode(args)
+    assert not error_code
+    srcfile = Track.open_file(src / audio_file.file.name)
+    dstfile = Track.open_file(dst / audio_file.file.name)
+    assert srcfile and dstfile
+    assert srcfile.album == dstfile.album
+    assert srcfile.artist == dstfile.artist
+    assert srcfile.discnumber == dstfile.discnumber
+    assert srcfile.disctotal == dstfile.disctotal
+    assert srcfile.genre == dstfile.genre
+    assert srcfile.title == dstfile.title
+    assert srcfile.tracknumber == dstfile.tracknumber
+    assert srcfile.tracktotal == dstfile.tracktotal
+    assert srcfile.encoder and not dstfile.encoder
+    srcfile.close()
+    dstfile.close()
+
+
+@pytest.mark.parametrize(
+    "pattern,title,expected",
+    [
+        ("", FakeTag.TITLE.value, f"1 - {FakeTag.TITLE.value}"),
+        ("{T}", "noise", "noise"),
+    ],
+)
+@pytest.mark.usefixtures("audio_file")
+def test_rename_mode(
+    audio_file: Track,
+    pattern: str,
+    title: str,
+    expected: str,
+) -> None:
+    audio_file.title = title
+    audio_file.save()
+    audio_file.close()
+
+    args: Dict[str, Any] = {
+        "FILE": [audio_file.path],
+        "--pattern": pattern,
+    }
+
+    error_code = rename_mode(args)
+    assert not error_code
+    new_file = audio_file.file.parent / (expected + audio_file.file.suffix)
+    assert new_file.is_file()
+    assert new_file.name == expected + audio_file.file.suffix
+
+
+@pytest.mark.parametrize("force", [True, False])
+@pytest.mark.usefixtures("audio_file")
+def test_rename_mode_existing(
+    audio_file: Track, monkeypatch: pytest.MonkeyPatch, force: bool
+):
+    audio_file.close()
+    copy = audio_file.file.parent / (FakeTag.TITLE.value + audio_file.file.suffix)
+    shutil.copyfile(audio_file.file, copy)
+    copytrack_before = Track(str(copy))
+    copytrack_before.clear_tags()
+    copytrack_before.save()
+    copytrack_before.close()
+
+    monkeypatch.setattr("builtins.input", lambda _: "y" if force else "n")
+
+    args: Dict[str, Any] = {
+        "FILE": [audio_file.path],
+        "--pattern": "{T}",
+        "--force": force,
+    }
+    error_code = rename_mode(args)
+    assert not error_code
+    copytrack_after = Track.open_file(copy)
+    assert copytrack_after
+    if force:
+        assert copytrack_after.title == FakeTag.TITLE.value
+    else:
+        assert not copytrack_after.title
+    copytrack_after.close()
+    copytrack_before.close()
