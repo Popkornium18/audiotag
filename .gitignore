@@ -5,3 +5,5 @@ dist/
 audiotag.egg-info/
 Pipfile
 Pipfile.lock
+**/__pycache__/
+.coverage
