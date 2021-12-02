@@ -79,12 +79,10 @@ Artist: Om
 Albumtitle: Conference of the Birds
 Genre: Doom Metal
 Year: 2006
-Number of songs: 2
-Number of discs: 1
-/path/to/files/1 - At Giza.flac
-Title: At Giza
-/path/to/files/2 - Flight of the Eagle.flac
-Title: Flight of the Eagle
+1 - At Giza.flac
+Title 1: At Giza
+2 - Flight of the Eagle.flac
+Title 2: Flight of the Eagle
 ```
 
 ### Set
@@ -92,7 +90,7 @@ Title: Flight of the Eagle
 If you want to set the tags in a non-interactive way you can use the `set` command.
 You can choose from these options:
 
-*  `--artist="Example"` 
+*  `--artist="Example"`
 *  `--title="Example"`
 *  `--album="Example"`
 *  `--date=2000`
@@ -104,7 +102,7 @@ You can choose from these options:
 
 If you want to remove tags you can choose these options:
 
-*  `--noartist` 
+*  `--noartist`
 *  `--notitle`
 *  `--noalbum`
 *  `--nodate`
@@ -118,7 +116,7 @@ You can combine these options as you like.
 Here is an example:
 
 ```
-$ audiotag set --artist=Om --album="Conference of the Birds" --nodiscnumber 01-at_giza.flac  
+$ audiotag set --artist=Om --album="Conference of the Birds" --nodiscnumber 01-at_giza.flac
 ```
 
 ### Clean
