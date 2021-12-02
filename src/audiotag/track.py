@@ -35,11 +35,11 @@ class Pattern(Enum):
 @functools.total_ordering
 class Track:
 
-    file: taglib.File
+    _file: taglib.File
     path: Path
 
     def __init__(self, path: Path):
-        self.file = taglib.File(str(path))
+        self._file = taglib.File(str(path))
         self.path = path
 
     def __lt__(self, other: Track) -> bool:
@@ -52,12 +52,6 @@ class Track:
 
     def __repr__(self) -> str:
         return f"Track('{str(self.path)}')"
-
-    def save(self) -> None:
-        self.file.save()
-
-    def close(self) -> None:
-        self.file.close()
 
     @property
     def encoder(self) -> str:
@@ -72,9 +66,9 @@ class Track:
     @artist.setter
     def artist(self, artist: List[str] | str) -> None:  # type: ignore
         if isinstance(artist, str):
-            self.file.tags[Tag.ARTIST.value] = [artist]
+            self._file.tags[Tag.ARTIST.value] = [artist]
         else:
-            self.file.tags[Tag.ARTIST.value] = artist
+            self._file.tags[Tag.ARTIST.value] = artist
 
     @property
     def date(self) -> int:
@@ -83,7 +77,7 @@ class Track:
 
     @date.setter
     def date(self, date: int) -> None:
-        self.file.tags[Tag.DATE.value] = [str(date)]
+        self._file.tags[Tag.DATE.value] = [str(date)]
 
     @property
     def genre(self) -> str:
@@ -92,7 +86,7 @@ class Track:
 
     @genre.setter
     def genre(self, genre: str) -> None:
-        self.file.tags[Tag.GENRE.value] = [genre]
+        self._file.tags[Tag.GENRE.value] = [genre]
 
     @property
     def album(self) -> str:
@@ -101,7 +95,7 @@ class Track:
 
     @album.setter
     def album(self, album: str) -> None:
-        self.file.tags[Tag.ALBUM.value] = [album]
+        self._file.tags[Tag.ALBUM.value] = [album]
 
     @property
     def title(self) -> str:
@@ -110,7 +104,7 @@ class Track:
 
     @title.setter
     def title(self, title: str) -> None:
-        self.file.tags[Tag.TITLE.value] = [title]
+        self._file.tags[Tag.TITLE.value] = [title]
 
     @property
     def tracknumber(self) -> int:
@@ -125,7 +119,7 @@ class Track:
             raise ValueError(
                 f"{Tag.TRACKNUMBER.value} must not be greater than {Tag.TRACKTOTAL.value}"
             )
-        self.file.tags[Tag.TRACKNUMBER.value] = [str(tracknumber)]
+        self._file.tags[Tag.TRACKNUMBER.value] = [str(tracknumber)]
 
     @property
     def tracktotal(self) -> int:
@@ -140,7 +134,7 @@ class Track:
             raise ValueError(
                 f"{Tag.TRACKTOTAL.value} must not be less than {Tag.TRACKNUMBER.value}"
             )
-        self.file.tags[Tag.TRACKTOTAL.value] = [str(tracktotal)]
+        self._file.tags[Tag.TRACKTOTAL.value] = [str(tracktotal)]
 
     @property
     def discnumber(self) -> int:
@@ -155,7 +149,7 @@ class Track:
             raise ValueError(
                 f"{Tag.DISCNUMBER.value} must not be greater than {Tag.DISCTOTAL.value}"
             )
-        self.file.tags[Tag.DISCNUMBER.value] = [str(discnumber)]
+        self._file.tags[Tag.DISCNUMBER.value] = [str(discnumber)]
 
     @property
     def disctotal(self) -> int:
@@ -170,7 +164,7 @@ class Track:
             raise ValueError(
                 f"{Tag.DISCTOTAL.value} must not be less than {Tag.DISCNUMBER.value}"
             )
-        self.file.tags[Tag.DISCTOTAL.value] = [str(disctotal)]
+        self._file.tags[Tag.DISCTOTAL.value] = [str(disctotal)]
 
     def _get_tag(self, tag: Tag) -> List[str] | None:
         """
@@ -178,10 +172,23 @@ class Track:
         """
         if not self.has_tag(tag):
             return None
-        tag_val: List[str] = self.file.tags[tag.value]
+        tag_val: List[str] = self._file.tags[tag.value]
         return tag_val
 
-    def format(self, pattern: Optional[str] = None) -> str:
+    def save(self) -> None:
+        self._file.save()
+
+    def close(self) -> None:
+        self._file.close()
+
+    def format_string(self) -> str:
+        """Format a human readable string"""
+        string = f"Filename: {str(self.path)}\n"
+        for tag, value in self._file.tags.items():
+            string += f"{tag}: {value}\n"
+        return string
+
+    def format_filename(self, pattern: Optional[str] = None) -> str:
         """Format a string according to the given format string"""
         missing_tags: List[Tag] = [
             tag
@@ -236,7 +243,7 @@ class Track:
 
     def has_tag(self, tag: Tag) -> bool:
         """Returns whether a tag is set"""
-        return tag.value in self.file.tags
+        return tag.value in self._file.tags
 
     def clear_tags(self, keep: List[Tag] = None) -> None:  # type: ignore
         """
@@ -244,6 +251,6 @@ class Track:
         to ENCODER.
         """
         keep = [Tag.ENCODER] if keep is None else keep
-        self.file.tags = {
-            keep_tag.value: self.file.tags[keep_tag.value] for keep_tag in keep
+        self._file.tags = {
+            keep_tag.value: self._file.tags[keep_tag.value] for keep_tag in keep
         }

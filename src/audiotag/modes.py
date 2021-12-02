@@ -20,10 +20,7 @@ def print_mode(args: Dict[str, Any]) -> int:
     """Prints all filenames and their tags and correspondig values."""
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
-        print(f"Filename: {str(track.path)}")
-        for tag, value in track.file.tags.items():
-            print(f"{tag}: {value}")
-        print("")
+        print(track.format_string())
     return 0
 
 
@@ -62,6 +59,7 @@ def interactive_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
+# TODO: remove access to Track._file
 def set_mode(args: Dict[str, Any]) -> int:
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
     TAGS = [
@@ -82,12 +80,12 @@ def set_mode(args: Dict[str, Any]) -> int:
             negative_opt = f"--no{tag.lower()}"
             if args[negative_opt]:
                 try:
-                    track.file.tags.pop(tag)
+                    track._file.tags.pop(tag)
                     modified = True
                 except KeyError:
                     pass
             if args[positive_opt]:
-                track.file.tags[tag] = [args[positive_opt]]
+                track._file.tags[tag] = [args[positive_opt]]
                 modified = True
         if modified:
             track.save()
@@ -105,6 +103,7 @@ def clean_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
+# TODO: remove access to Track._file
 def copy_mode(args: Dict[str, Any]) -> int:
     try:
         srcfiles_unsorted = open_tracks(list_files(Path(args["SOURCEFOLDER"])))
@@ -122,11 +121,13 @@ def copy_mode(args: Dict[str, Any]) -> int:
     for srcfile, dstfile in zip(srcfiles, dstfiles):
         try:
             # srcfile is never saved so this change is not persistent, just simplifies copying
-            srcfile.file.tags[Tag.ENCODER.value] = dstfile.file.tags[Tag.ENCODER.value]
+            srcfile._file.tags[Tag.ENCODER.value] = dstfile._file.tags[
+                Tag.ENCODER.value
+            ]
         except KeyError:
             # Encoder not present in dstfile, so delete it before copying
-            srcfile.file.tags.pop(Tag.ENCODER.value, None)
-        dstfile.file.tags = srcfile.file.tags
+            srcfile._file.tags.pop(Tag.ENCODER.value, None)
+        dstfile._file.tags = srcfile._file.tags
         dstfile.save()
         dstfile.close()
     return 0
@@ -136,7 +137,7 @@ def rename_mode(args: Dict[str, Any]) -> int:
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
         new_path = track.path.parent / (
-            track.format(args["--pattern"]) + track.path.suffix
+            track.format_filename(args["--pattern"]) + track.path.suffix
         )
         if track.path == new_path:
             continue

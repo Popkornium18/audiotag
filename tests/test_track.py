@@ -144,14 +144,14 @@ def test_tracknumber_tracktotal(audio_file: Track):
 @pytest.mark.usefixtures("audio_file")
 def test_format_broken_pattern(audio_file: Track):
     with pytest.raises(ValueError):
-        audio_file.format(pattern="NotAValidPattern")
+        audio_file.format_filename(pattern="NotAValidPattern")
 
 
 @pytest.mark.usefixtures("audio_file")
 def test_format_missing_tags(audio_file: Track):
     audio_file.clear_tags()
     with pytest.raises(ValueError):
-        audio_file.format()
+        audio_file.format_filename()
 
 
 @pytest.mark.parametrize(
@@ -192,4 +192,4 @@ def test_format(
     audio_file.disctotal = disctotal
     audio_file.discnumber = discnumber
     audio_file.tracktotal = tracktotal
-    assert audio_file.format(pattern) == expected
+    assert audio_file.format_filename(pattern) == expected
