@@ -1,5 +1,6 @@
 # audiotag
 [![Tests](https://github.com/Popkornium18/audiotag/actions/workflows/tests.yml/badge.svg)](https://github.com/Popkornium18/audiotag/actions/workflows/tests.yml)
+[![CodeQL](https://github.com/Popkornium18/audiotag/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Popkornium18/audiotag/actions/workflows/codeql-analysis.yml)
 
 Audiotag is a command line audio tagger written in python3.
 It uses [TagLib](http://taglib.org/) to write the metadata.
