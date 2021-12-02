@@ -52,7 +52,7 @@ try:
 except ImportError:
     print("Module 'readline' not found")
 
-args = docopt(__doc__, version="audiotag 0.3.2")
+args = docopt(__doc__, version="audiotag 0.4.0")
 
 
 def main() -> int:
