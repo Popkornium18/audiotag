@@ -42,8 +42,9 @@ def interactive_mode(args: Dict[str, Any]) -> int:
     for discnumber, disc in enumerate(discs, start=1):
         tracktotal = len(disc)
         for tracknumber, track in enumerate(disc, start=1):
-            print(track.path)
-            title = input("Title: ")
+            print(track.path.name)
+            prefix = f"(Disc {discnumber}, ) "
+            title = input(f"{prefix if disctotal > 1 else ''}Track {tracknumber}: ")
             track.artist = artist  # type: ignore
             track.title = title
             track.album = album
