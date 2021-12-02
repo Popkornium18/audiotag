@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 import pytest
 import shutil
-from fixtures import Files, FakeTag, fixture_audio_file
+from conftest import FakeTag
 from audiotag.track import Track, Tag, Pattern
 
 if TYPE_CHECKING:

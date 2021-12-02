@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import pytest
 from audiotag.track import Track, Tag
 from audiotag.modes import clean_mode, copy_mode, print_mode, rename_mode
-from fixtures import FakeTag, fixture_audio_file
+from conftest import FakeTag
 
 if TYPE_CHECKING:
     from typing import Dict, Any
