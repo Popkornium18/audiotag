@@ -22,23 +22,29 @@ def test_yes_no(monkeypatch: pytest.MonkeyPatch, input: str, expected: bool) -> 
 
 
 @pytest.mark.usefixtures("mixed_dir")
-def test_open_files_mixed(mixed_dir: Path) -> None:
+def test_open_tracks_mixed(mixed_dir: Path) -> None:
     files = util.list_files(mixed_dir)
-    assert len(util.open_files(files)) == 1
+    assert len(util.open_tracks(files)) == 1
 
 
 @pytest.mark.usefixtures("image_dir")
-def test_open_files_invalid(image_dir: Path) -> None:
+def test_open_tracks_invalid(image_dir: Path) -> None:
     files = util.list_files(image_dir)
     with pytest.raises(util.NoAudioFilesFoundError):
-        util.open_files(files)
+        util.open_tracks(files)
 
 
 @pytest.mark.usefixtures("audio_file")
 def test_list_files(audio_file: Track) -> None:
-    assert len(util.list_files(audio_file.file.parent)) == 1
+    assert len(util.list_files(audio_file.path.parent)) == 1
 
 
 def test_list_files_error() -> None:
     with pytest.raises(util.NoSuchDirectoryError):
         len(util.list_files(Path("DOES_DEFINITELY_NOT_EXIST")))
+
+
+def test_strings_to_paths() -> None:
+    strings = ["test1", "test2", "test3"]
+    paths = util.strings_to_paths(strings)
+    assert strings == [path.name for path in paths]

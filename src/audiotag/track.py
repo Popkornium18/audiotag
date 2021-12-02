@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 
 if TYPE_CHECKING:
-    from typing import List, Dict, Optional
+    from typing import List, Optional
 
 
 class Tag(Enum):
@@ -33,35 +33,31 @@ class Pattern(Enum):
 
 
 @functools.total_ordering
-class Track(taglib.File):
+class Track:
 
-    tags: Dict[str, List[str]]
-    path: str
-    _file: Path
+    file: taglib.File
+    path: Path
 
-    def __init__(self, filename: str):
-        super().__init__(filename)
-        self._file = Path(self.path)
+    def __init__(self, path: Path):
+        self.file = taglib.File(str(path))
+        self.path = path
 
     def __lt__(self, other: Track) -> bool:
-        return self.file < other.file
+        return self.path < other.path
 
-    @classmethod
-    def open_file(cls, path: Path) -> Track | None:
-        """
-        Open a single file with taglib. If the file can't be opened a warning is
-        printed and None is returned.
-        """
-        try:
-            track = cls(str(path))
-        except OSError:
-            print(f"Unable to open file '{path}'")
-            return None
-        return track
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Track):
+            return NotImplemented
+        return self.path == other.path
 
-    @property
-    def file(self) -> Path:
-        return self._file
+    def __repr__(self) -> str:
+        return f"Track('{str(self.path)}')"
+
+    def save(self) -> None:
+        self.file.save()
+
+    def close(self) -> None:
+        self.file.close()
 
     @property
     def encoder(self) -> str:
@@ -76,9 +72,9 @@ class Track(taglib.File):
     @artist.setter
     def artist(self, artist: List[str] | str) -> None:  # type: ignore
         if isinstance(artist, str):
-            self.tags[Tag.ARTIST.value] = [artist]
+            self.file.tags[Tag.ARTIST.value] = [artist]
         else:
-            self.tags[Tag.ARTIST.value] = artist
+            self.file.tags[Tag.ARTIST.value] = artist
 
     @property
     def date(self) -> int:
@@ -87,7 +83,7 @@ class Track(taglib.File):
 
     @date.setter
     def date(self, date: int) -> None:
-        self.tags[Tag.DATE.value] = [str(date)]
+        self.file.tags[Tag.DATE.value] = [str(date)]
 
     @property
     def genre(self) -> str:
@@ -96,7 +92,7 @@ class Track(taglib.File):
 
     @genre.setter
     def genre(self, genre: str) -> None:
-        self.tags[Tag.GENRE.value] = [genre]
+        self.file.tags[Tag.GENRE.value] = [genre]
 
     @property
     def album(self) -> str:
@@ -105,7 +101,7 @@ class Track(taglib.File):
 
     @album.setter
     def album(self, album: str) -> None:
-        self.tags[Tag.ALBUM.value] = [album]
+        self.file.tags[Tag.ALBUM.value] = [album]
 
     @property
     def title(self) -> str:
@@ -114,7 +110,7 @@ class Track(taglib.File):
 
     @title.setter
     def title(self, title: str) -> None:
-        self.tags[Tag.TITLE.value] = [title]
+        self.file.tags[Tag.TITLE.value] = [title]
 
     @property
     def tracknumber(self) -> int:
@@ -129,7 +125,7 @@ class Track(taglib.File):
             raise ValueError(
                 f"{Tag.TRACKNUMBER.value} must not be greater than {Tag.TRACKTOTAL.value}"
             )
-        self.tags[Tag.TRACKNUMBER.value] = [str(tracknumber)]
+        self.file.tags[Tag.TRACKNUMBER.value] = [str(tracknumber)]
 
     @property
     def tracktotal(self) -> int:
@@ -144,7 +140,7 @@ class Track(taglib.File):
             raise ValueError(
                 f"{Tag.TRACKTOTAL.value} must not be less than {Tag.TRACKNUMBER.value}"
             )
-        self.tags[Tag.TRACKTOTAL.value] = [str(tracktotal)]
+        self.file.tags[Tag.TRACKTOTAL.value] = [str(tracktotal)]
 
     @property
     def discnumber(self) -> int:
@@ -159,7 +155,7 @@ class Track(taglib.File):
             raise ValueError(
                 f"{Tag.DISCNUMBER.value} must not be greater than {Tag.DISCTOTAL.value}"
             )
-        self.tags[Tag.DISCNUMBER.value] = [str(discnumber)]
+        self.file.tags[Tag.DISCNUMBER.value] = [str(discnumber)]
 
     @property
     def disctotal(self) -> int:
@@ -174,7 +170,16 @@ class Track(taglib.File):
             raise ValueError(
                 f"{Tag.DISCTOTAL.value} must not be less than {Tag.DISCNUMBER.value}"
             )
-        self.tags[Tag.DISCTOTAL.value] = [str(disctotal)]
+        self.file.tags[Tag.DISCTOTAL.value] = [str(disctotal)]
+
+    def _get_tag(self, tag: Tag) -> List[str] | None:
+        """
+        Returns the given tag as a list of strings or None if the tag is missing
+        """
+        if not self.has_tag(tag):
+            return None
+        tag_val: List[str] = self.file.tags[tag.value]
+        return tag_val
 
     def format(self, pattern: Optional[str] = None) -> str:
         """Format a string according to the given format string"""
@@ -229,18 +234,9 @@ class Track(taglib.File):
             raise ValueError(f"Check if pattern '{pattern}' is correct")
         return formatted_str
 
-    def _get_tag(self, tag: Tag) -> List[str] | None:
-        """
-        Returns the given tag as a list of strings or None if the tag is missing
-        """
-        if not self.has_tag(tag):
-            return None
-        tag_val: List[str] = self.tags[tag.value]
-        return tag_val
-
     def has_tag(self, tag: Tag) -> bool:
         """Returns whether a tag is set"""
-        return tag.value in self.tags
+        return tag.value in self.file.tags
 
     def clear_tags(self, keep: List[Tag] = None) -> None:  # type: ignore
         """
@@ -248,4 +244,6 @@ class Track(taglib.File):
         to ENCODER.
         """
         keep = [Tag.ENCODER] if keep is None else keep
-        self.tags = {keep_tag.value: self.tags[keep_tag.value] for keep_tag in keep}
+        self.file.tags = {
+            keep_tag.value: self.file.tags[keep_tag.value] for keep_tag in keep
+        }

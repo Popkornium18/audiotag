@@ -62,7 +62,7 @@ def fixture_audio_file(tmp_path_factory: pytest.TempPathFactory) -> Track:
     opus_file = Path(f"{dir_name}/testdata/{Files.AUDIO.value}")
     copy = tmp_path_factory.mktemp("tmp-audio") / Files.AUDIO.value
     shutil.copyfile(src=opus_file, dst=copy)
-    track = Track(str(copy))
+    track = Track(copy)
     track.clear_tags()
     track.artist = FakeTag.ARTIST.value  # type: ignore
     track.album = FakeTag.ALBUM.value

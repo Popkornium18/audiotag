@@ -6,8 +6,9 @@ from audiotag.track import Track, Tag
 from audiotag.util import (
     NoSuchDirectoryError,
     yes_no,
-    open_files,
+    open_tracks,
     list_files,
+    strings_to_paths,
 )
 
 if TYPE_CHECKING:
@@ -17,25 +18,25 @@ if TYPE_CHECKING:
 # TODO: move to class
 def print_mode(args: Dict[str, Any]) -> int:
     """Prints all filenames and their tags and correspondig values."""
-    tracklist = open_files(args["FILE"])
+    tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
-        print(f"Filename: {track.path}")
-        for tag, value in track.tags.items():
+        print(f"Filename: {str(track.path)}")
+        for tag, value in track.file.tags.items():
             print(f"{tag}: {value}")
         print("")
     return 0
 
 
 def interactive_mode(args: Dict[str, Any]) -> int:
-    tracklist: List[Track] = sorted(open_files(args["FILE"]))
+    tracklist: List[Track] = open_tracks(strings_to_paths(args["FILE"]))
     artist = input("Artist: ")
     album = input("Albumtitle: ")
     genre = input("Genre: ")
     date = int(input("Date: "))
-    parent_dirs = {t.file.parent for t in tracklist}
+    parent_dirs = {t.path.parent for t in tracklist}
     discs: List[List[Track]] = []
-    for parent in parent_dirs:
-        discs.append([t for t in tracklist if t.file.parent == parent])
+    for parent in sorted(parent_dirs):
+        discs.append(sorted([t for t in tracklist if t.path.parent == parent]))
 
     disctotal = len(discs)
     for discnumber, disc in enumerate(discs, start=1):
@@ -61,7 +62,7 @@ def interactive_mode(args: Dict[str, Any]) -> int:
 
 
 def set_mode(args: Dict[str, Any]) -> int:
-    tracklist = open_files(args["FILE"])
+    tracklist = open_tracks(strings_to_paths(args["FILE"]))
     TAGS = [
         Tag.ALBUM.value,
         Tag.ARTIST.value,
@@ -80,12 +81,12 @@ def set_mode(args: Dict[str, Any]) -> int:
             negative_opt = f"--no{tag.lower()}"
             if args[negative_opt]:
                 try:
-                    track.tags.pop(tag)
+                    track.file.tags.pop(tag)
                     modified = True
                 except KeyError:
                     pass
             if args[positive_opt]:
-                track.tags[tag] = [args[positive_opt]]
+                track.file.tags[tag] = [args[positive_opt]]
                 modified = True
         if modified:
             track.save()
@@ -95,7 +96,7 @@ def set_mode(args: Dict[str, Any]) -> int:
 
 def clean_mode(args: Dict[str, Any]) -> int:
     """Removes all tags from the files except the ENCODER tag (if it exists)."""
-    tracklist = open_files(args["FILE"])
+    tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
         track.clear_tags()
         track.save()
@@ -105,8 +106,8 @@ def clean_mode(args: Dict[str, Any]) -> int:
 
 def copy_mode(args: Dict[str, Any]) -> int:
     try:
-        srcfiles_unsorted = open_files(list_files(Path(args["SOURCEFOLDER"])))
-        dstfiles_unsorted = open_files(list_files(Path(args["DESTFOLDER"])))
+        srcfiles_unsorted = open_tracks(list_files(Path(args["SOURCEFOLDER"])))
+        dstfiles_unsorted = open_tracks(list_files(Path(args["DESTFOLDER"])))
     except NoSuchDirectoryError as err:
         print(err)
         return 1
@@ -120,27 +121,27 @@ def copy_mode(args: Dict[str, Any]) -> int:
     for srcfile, dstfile in zip(srcfiles, dstfiles):
         try:
             # srcfile is never saved so this change is not persistent, just simplifies copying
-            srcfile.tags[Tag.ENCODER.value] = dstfile.tags[Tag.ENCODER.value]
+            srcfile.file.tags[Tag.ENCODER.value] = dstfile.file.tags[Tag.ENCODER.value]
         except KeyError:
             # Encoder not present in dstfile, so delete it before copying
-            srcfile.tags.pop(Tag.ENCODER.value, None)
-        dstfile.tags = srcfile.tags
+            srcfile.file.tags.pop(Tag.ENCODER.value, None)
+        dstfile.file.tags = srcfile.file.tags
         dstfile.save()
         dstfile.close()
     return 0
 
 
 def rename_mode(args: Dict[str, Any]) -> int:
-    tracklist = open_files(args["FILE"])
+    tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
-        new_path = track.file.parent / (
-            track.format(args["--pattern"]) + track.file.suffix
+        new_path = track.path.parent / (
+            track.format(args["--pattern"]) + track.path.suffix
         )
-        if track.file == new_path:
+        if track.path == new_path:
             continue
         if new_path.is_file() and not args["--force"]:
             question = f"File '{str(new_path)}' already exists.\nOverwrite it? (y/n): "
             if not yes_no(question):
                 continue
-        os.rename(src=track.file, dst=new_path)
+        os.rename(src=track.path, dst=new_path)
     return 0

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 @pytest.mark.usefixtures("audio_file")
 def test_print_mode(audio_file: Track, capfd):
     audio_file.close()
-    expected = f"""Filename: {str(audio_file.file)}
+    expected = f"""Filename: {str(audio_file.path)}
 {Tag.ALBUM.name}: {[FakeTag.ALBUM.value]}
 {Tag.ARTIST.name}: {[FakeTag.ARTIST.value]}
 {Tag.DATE.name}: {[str(FakeTag.DATE.value)]}
@@ -28,7 +28,7 @@ def test_print_mode(audio_file: Track, capfd):
 
 """
     args: Dict[str, Any] = {
-        "FILE": [audio_file.path],
+        "FILE": [str(audio_file.path)],
     }
     error_code = print_mode(args)
     stdout, stderr = capfd.readouterr()
@@ -41,11 +41,11 @@ def test_print_mode(audio_file: Track, capfd):
 def test_clean_mode(audio_file: Track):
     audio_file.close()
     args: Dict[str, Any] = {
-        "FILE": [audio_file.path],
+        "FILE": [str(audio_file.path)],
     }
     error_code = clean_mode(args)
     assert not error_code
-    cleaned_file = Track.open_file(audio_file.file)
+    cleaned_file = Track(audio_file.path)
     assert cleaned_file
     assert cleaned_file.has_tag(Tag.ENCODER)
     assert not cleaned_file.has_tag(Tag.ALBUM)
@@ -71,13 +71,13 @@ def test_copy_mode_dir_not_exist():
 @pytest.mark.usefixtures("audio_file")
 def test_copy_mode_too_many_files(audio_file: Track):
     audio_file.close()
-    src = audio_file.file.parent / "src"
-    dst = audio_file.file.parent / "dst"
+    src = audio_file.path.parent / "src"
+    dst = audio_file.path.parent / "dst"
     os.mkdir(src)
     os.mkdir(dst)
-    shutil.copyfile(audio_file.file, src / audio_file.file.name)
-    shutil.copyfile(audio_file.file, src / ("lmao" + audio_file.file.suffix))
-    shutil.move(audio_file.file, dst / audio_file.file.name)
+    shutil.copyfile(audio_file.path, src / audio_file.path.name)
+    shutil.copyfile(audio_file.path, src / ("lmao" + audio_file.path.suffix))
+    shutil.move(audio_file.path, dst / audio_file.path.name)
     args: Dict[str, Any] = {
         "SOURCEFOLDER": str(src),
         "DESTFOLDER": str(dst),
@@ -88,23 +88,23 @@ def test_copy_mode_too_many_files(audio_file: Track):
 
 @pytest.mark.usefixtures("audio_file")
 def test_copy_mode(audio_file: Track):
-    src = audio_file.file.parent / "src"
-    dst = audio_file.file.parent / "dst"
+    src = audio_file.path.parent / "src"
+    dst = audio_file.path.parent / "dst"
     os.mkdir(src)
     os.mkdir(dst)
-    shutil.copyfile(audio_file.file, src / audio_file.file.name)
+    shutil.copyfile(audio_file.path, src / audio_file.path.name)
     audio_file.clear_tags(keep=[])
     audio_file.save()
     audio_file.close()
-    shutil.move(audio_file.file, dst / audio_file.file.name)
+    shutil.move(audio_file.path, dst / audio_file.path.name)
     args: Dict[str, Any] = {
         "SOURCEFOLDER": str(src),
         "DESTFOLDER": str(dst),
     }
     error_code = copy_mode(args)
     assert not error_code
-    srcfile = Track.open_file(src / audio_file.file.name)
-    dstfile = Track.open_file(dst / audio_file.file.name)
+    srcfile = Track(src / audio_file.path.name)
+    dstfile = Track(dst / audio_file.path.name)
     assert srcfile and dstfile
     assert srcfile.album == dstfile.album
     assert srcfile.artist == dstfile.artist
@@ -138,15 +138,15 @@ def test_rename_mode(
     audio_file.close()
 
     args: Dict[str, Any] = {
-        "FILE": [audio_file.path],
+        "FILE": [str(audio_file.path)],
         "--pattern": pattern,
     }
 
     error_code = rename_mode(args)
     assert not error_code
-    new_file = audio_file.file.parent / (expected + audio_file.file.suffix)
+    new_file = audio_file.path.parent / (expected + audio_file.path.suffix)
     assert new_file.is_file()
-    assert new_file.name == expected + audio_file.file.suffix
+    assert new_file.name == expected + audio_file.path.suffix
 
 
 @pytest.mark.parametrize("force", [True, False])
@@ -155,9 +155,9 @@ def test_rename_mode_existing(
     audio_file: Track, monkeypatch: pytest.MonkeyPatch, force: bool
 ):
     audio_file.close()
-    copy = audio_file.file.parent / (FakeTag.TITLE.value + audio_file.file.suffix)
-    shutil.copyfile(audio_file.file, copy)
-    copytrack_before = Track(str(copy))
+    copy = audio_file.path.parent / (FakeTag.TITLE.value + audio_file.path.suffix)
+    shutil.copyfile(audio_file.path, copy)
+    copytrack_before = Track(copy)
     copytrack_before.clear_tags()
     copytrack_before.save()
     copytrack_before.close()
@@ -165,13 +165,13 @@ def test_rename_mode_existing(
     monkeypatch.setattr("builtins.input", lambda _: "y" if force else "n")
 
     args: Dict[str, Any] = {
-        "FILE": [audio_file.path],
+        "FILE": [str(audio_file.path)],
         "--pattern": "{T}",
         "--force": force,
     }
     error_code = rename_mode(args)
     assert not error_code
-    copytrack_after = Track.open_file(copy)
+    copytrack_after = Track(copy)
     assert copytrack_after
     if force:
         assert copytrack_after.title == FakeTag.TITLE.value

@@ -11,10 +11,21 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.usefixtures("audio_file")
+def test_comparison(audio_file: Track):
+    shutil.copyfile(audio_file.path, audio_file.path.with_stem("lol"))
+    audio_file_same = Track(audio_file.path)
+    audio_file_different = Track(audio_file.path.with_stem("lol"))
+    assert audio_file == audio_file_same
+    assert audio_file != audio_file_different
+    assert audio_file_same > audio_file_different
+    assert audio_file_different < audio_file_same
+
+
+@pytest.mark.usefixtures("audio_file")
 def test_sorting(audio_file: Track):
-    second = Path(audio_file.file.parent / ("ZZZZ" + audio_file.file.suffix))
-    shutil.copyfile(audio_file.file, second)
-    second_file = Track.open_file(second)
+    second = Path(audio_file.path.parent / ("zzzz" + audio_file.path.suffix))
+    shutil.copyfile(audio_file.path, second)
+    second_file = Track(second)
     assert second_file
     assert sorted([second_file, audio_file]) == [audio_file, second_file]
 
@@ -182,7 +193,3 @@ def test_format(
     audio_file.discnumber = discnumber
     audio_file.tracktotal = tracktotal
     assert audio_file.format(pattern) == expected
-
-
-def test_path(audio_file: Track):
-    assert audio_file.file == audio_file.file.parent / Files.AUDIO.value
