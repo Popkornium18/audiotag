@@ -12,9 +12,10 @@ if TYPE_CHECKING:
 
 @pytest.mark.usefixtures("audio_file")
 def test_comparison(audio_file: Track):
-    shutil.copyfile(audio_file.path, audio_file.path.with_stem("lol"))
+    copyfile_name = "lol" + audio_file.path.suffix
+    shutil.copyfile(audio_file.path, audio_file.path.with_name(copyfile_name))
     audio_file_same = Track(audio_file.path)
-    audio_file_different = Track(audio_file.path.with_stem("lol"))
+    audio_file_different = Track(audio_file.path.with_name(copyfile_name))
     assert audio_file == audio_file_same
     assert audio_file != audio_file_different
     assert audio_file_same > audio_file_different
