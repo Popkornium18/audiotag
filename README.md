@@ -71,9 +71,8 @@ TRACKTOTAL: ['2']
 ### Interactive
 
 The `interactive` subcommand interprets all given files as a single album and asks for all the necessary information.
-If the `Number of discs` value is anything greater than 1, audiotag will ask you which disk you are currently tagging.
-Otherwise the `DISCNUMBER` tag will also be set to 1.
-`Number of songs` is used to determine the number of leading zeros when you use the `rename` subcommand.
+If the the files are in different directories, audiotag assumes that each directory is a disk of a multi-disc release.
+The `TRACKTOTAL` and `DISCTOTAL` tags are set automatically.
 
 ```
 $ audiotag interactive *.flac
