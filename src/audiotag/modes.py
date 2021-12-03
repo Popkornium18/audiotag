@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from typing import Dict, List, Any
 
 
-# TODO: move to class
 def print_mode(args: Dict[str, Any]) -> int:
     """Prints all filenames and their tags and correspondig values."""
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
