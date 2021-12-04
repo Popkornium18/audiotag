@@ -165,8 +165,6 @@ Note that the `ENCODER` tag ist _not_ copied.
 ## Dependencies
 
 The following dependencies are needed to run audiotag:
-
-* [docopt](https://pypi.org/project/docopt/): For parsing command line arguments
 * [pytaglib](https://pypi.org/project/pytaglib/): Python wrapper for accessing TagLib
 
 Optional dependencies are:

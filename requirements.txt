@@ -1,3 +1,2 @@
-docopt==0.6.2
 pytaglib==1.4.6
 readline==6.2.4.1

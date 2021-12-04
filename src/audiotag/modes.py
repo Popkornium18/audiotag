@@ -75,16 +75,14 @@ def set_mode(args: Dict[str, Any]) -> int:
     for track in tracklist:
         modified = False
         for tag in TAGS:
-            positive_opt = f"--{tag.lower()}"
-            negative_opt = f"--no{tag.lower()}"
-            if args[negative_opt]:
+            if args[f"no{tag.lower}"]:
                 try:
                     track._file.tags.pop(tag)
                     modified = True
                 except KeyError:
                     pass
-            if args[positive_opt]:
-                track._file.tags[tag] = [args[positive_opt]]
+            if args[tag.lower()]:
+                track._file.tags[tag] = [args[tag.lower()]]
                 modified = True
         if modified:
             track.save()
@@ -136,11 +134,11 @@ def rename_mode(args: Dict[str, Any]) -> int:
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
         new_path = track.path.parent / (
-            track.format_filename(args["--pattern"]) + track.path.suffix
+            track.format_filename(args["pattern"]) + track.path.suffix
         )
         if track.path == new_path:
             continue
-        if new_path.is_file() and not args["--force"]:
+        if new_path.is_file() and not args["force"]:
             question = f"File '{str(new_path)}' already exists.\nOverwrite it? (y/n): "
             if not yes_no(question):
                 continue

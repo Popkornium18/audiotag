@@ -42,7 +42,7 @@ def open_tracks(paths: List[Path]) -> List[Track]:
         try:
             track = Track(path)
         except OSError:
-            print("Unable to open file '{str(path)}'")
+            print(f"Unable to open file '{str(path)}'")
             continue
         tracks.append(track)
     if not tracks:

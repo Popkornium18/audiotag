@@ -145,7 +145,7 @@ def test_rename_mode(
 
     args: Dict[str, Any] = {
         "FILE": [str(audio_file.path)],
-        "--pattern": pattern,
+        "pattern": pattern,
     }
 
     error_code = rename_mode(args)
@@ -172,8 +172,8 @@ def test_rename_mode_existing(
 
     args: Dict[str, Any] = {
         "FILE": [str(audio_file.path)],
-        "--pattern": "{T}",
-        "--force": force,
+        "pattern": "{T}",
+        "force": force,
     }
     error_code = rename_mode(args)
     assert not error_code
