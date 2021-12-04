@@ -185,7 +185,7 @@ class Track:
         """Format a human readable string"""
         string = f"Filename: {str(self.path)}\n"
         for tag, value in self._file.tags.items():
-            string += f"{tag}: {value}\n"
+            string += f"{tag}: {value[0] if len(value) == 1 else value}\n"
         return string
 
     def format_filename(self, pattern: Optional[str] = None) -> str:

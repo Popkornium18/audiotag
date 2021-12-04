@@ -180,7 +180,7 @@ def test_format_missing_tags(audio_file: Track):
     ],
 )
 @pytest.mark.usefixtures("audio_file")
-def test_format(
+def test_format_filename(
     audio_file: Track,
     artists: List[str],
     pattern: str,

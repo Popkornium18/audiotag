@@ -8,23 +8,29 @@ from audiotag.modes import clean_mode, copy_mode, print_mode, rename_mode
 from conftest import FakeTag
 
 if TYPE_CHECKING:
-    from typing import Dict, Any
+    from typing import Dict, List, Any
 
 
+@pytest.mark.parametrize(
+    "artists",
+    [["lel"], ["lol", "lul"]],
+)
 @pytest.mark.usefixtures("audio_file")
-def test_print_mode(audio_file: Track, capfd):
+def test_print_mode(audio_file: Track, artists: List[str], capfd):
+    audio_file.artist = artists
+    audio_file.save()
     audio_file.close()
     expected = f"""Filename: {str(audio_file.path)}
-{Tag.ALBUM.name}: {[FakeTag.ALBUM.value]}
-{Tag.ARTIST.name}: {[FakeTag.ARTIST.value]}
-{Tag.DATE.name}: {[str(FakeTag.DATE.value)]}
-{Tag.DISCNUMBER.name}: {[str(FakeTag.DISCNUMBER.value)]}
-{Tag.DISCTOTAL.name}: {[str(FakeTag.DISCTOTAL.value)]}
-{Tag.ENCODER.name}: {[FakeTag.ENCODER.value]}
-{Tag.GENRE.name}: {[FakeTag.GENRE.value]}
-{Tag.TITLE.name}: {[FakeTag.TITLE.value]}
-{Tag.TRACKNUMBER.name}: {[str(FakeTag.TRACKNUMBER.value)]}
-{Tag.TRACKTOTAL.name}: {[str(FakeTag.TRACKTOTAL.value)]}
+{Tag.ALBUM.name}: {FakeTag.ALBUM.value}
+{Tag.ARTIST.name}: {artists[0] if len(artists) == 1 else artists}
+{Tag.DATE.name}: {str(FakeTag.DATE.value)}
+{Tag.DISCNUMBER.name}: {str(FakeTag.DISCNUMBER.value)}
+{Tag.DISCTOTAL.name}: {str(FakeTag.DISCTOTAL.value)}
+{Tag.ENCODER.name}: {FakeTag.ENCODER.value}
+{Tag.GENRE.name}: {FakeTag.GENRE.value}
+{Tag.TITLE.name}: {FakeTag.TITLE.value}
+{Tag.TRACKNUMBER.name}: {str(FakeTag.TRACKNUMBER.value)}
+{Tag.TRACKTOTAL.name}: {str(FakeTag.TRACKTOTAL.value)}
 
 """
     args: Dict[str, Any] = {
