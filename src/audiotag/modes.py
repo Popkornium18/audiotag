@@ -75,7 +75,7 @@ def set_mode(args: Dict[str, Any]) -> int:
     for track in tracklist:
         modified = False
         for tag in TAGS:
-            if args[f"no{tag.lower}"]:
+            if args[f"no{tag.lower()}"]:
                 try:
                     track._file.tags.pop(tag)
                     modified = True
