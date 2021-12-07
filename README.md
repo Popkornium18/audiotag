@@ -19,22 +19,23 @@ If you are running **Arch Linux** you can install it from the **AUR**. The packa
 
 ## Usage
 
-Audiotag offers different subcommands:
+Audiotags functionality is split into different subcommands.
 
 ```
-Usage:
-  audiotag print FILE...
-  audiotag interactive FILE...
-  audiotag set [--artist=ARTIST|--noartist] [--title=TITLE|--notitle]
-               [--album=ALBUM|--noalbum] [--date=DATE|--nodate]
-               [--genre=GENRE|--nogenre] [--tracknumber=TRACKNUMBER|--notracknumber]
-               [--tracktotal=TRACKTOTAL|--notracktotal] [--discnumber=DISCNUMBER|--nodiscnumber]
-               [--disctotal=DISCTOTAL|--nodisctotal] FILE...
-  audiotag clean FILE...
-  audiotag rename [--pattern=PATTERN] [-f] FILE...
-  audiotag copy SOURCEFOLDER DESTFOLDER
-  audiotag -h | --help
-  audiotag -v | --version
+usage: audiotag [-h] [-v] {clean,copy,interactive,print,rename,set} ...
+
+positional arguments:
+  {clean,copy,interactive,print,rename,set}
+    clean               delete all tags except 'ENCODER'
+    copy                copy the tags from files in one folder to those in another folder
+    interactive         tag a single album interactively. Treats files in subdirectories as different discs.
+    print               print all tags
+    rename              rename files based on their tags
+    set                 set or delete tags
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
 ```
 
 ### Print
