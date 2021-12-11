@@ -82,7 +82,7 @@ def set_mode(args: Dict[str, Any]) -> int:
                 except KeyError:
                     pass
             if args[tag.lower()]:
-                track._file.tags[tag] = [args[tag.lower()]]
+                track._file.tags[tag] = [str(args[tag.lower()])]
                 modified = True
         if modified:
             track.save()
