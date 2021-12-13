@@ -97,7 +97,6 @@ def clean_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
-# TODO: remove access to Track._file
 def copy_mode(args: Dict[str, Any]) -> int:
     try:
         srcfiles_unsorted = open_tracks(list_files(Path(args["SOURCEFOLDER"])))
