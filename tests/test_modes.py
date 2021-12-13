@@ -100,6 +100,7 @@ def test_copy_mode(audio_file: Track):
     os.mkdir(dst)
     shutil.copyfile(audio_file.path, src / audio_file.path.name)
     audio_file.clear_tags(keep=set())
+    audio_file._file.tags[Tag.ENCODER.value] = ["lol"]
     audio_file.save()
     audio_file.close()
     shutil.move(audio_file.path, dst / audio_file.path.name)
@@ -120,7 +121,8 @@ def test_copy_mode(audio_file: Track):
     assert srcfile.title == dstfile.title
     assert srcfile.tracknumber == dstfile.tracknumber
     assert srcfile.tracktotal == dstfile.tracktotal
-    assert srcfile.encoder and not dstfile.encoder
+    assert srcfile.encoder == FakeTag.ENCODER.value
+    assert dstfile.encoder == "lol"
     srcfile.close()
     dstfile.close()
 
