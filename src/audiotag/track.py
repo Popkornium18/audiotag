@@ -167,7 +167,7 @@ class Track:
             )
         self._file.tags[Tag.DISCTOTAL.value] = [str(disctotal)]
 
-    def _get_tag(self, tag: Tag) -> List[str] | None:
+    def _get_tag(self, tag: Tag) -> Optional[List[str]]:
         """
         Returns the given tag as a list of strings or None if the tag is missing
         """
@@ -270,3 +270,22 @@ class Track:
         self._file.tags = {
             keep_tag.value: self._file.tags[keep_tag.value] for keep_tag in keep
         }
+
+    def copy_tags(self, source: Track, omit_tags: Optional[Set[Tag]] = None) -> None:
+        """
+        Copy the tags from the given Track to this one. Tags in omit_tags are
+        not copied. omit_tags defaults to ENCODER.
+        """
+        omit_tags = {Tag.ENCODER} if omit_tags is None else omit_tags
+        omit_tags_str = {tag.value for tag in omit_tags}
+        new_tags = {
+            key: value
+            for (key, value) in source._file.tags.items()
+            if key not in omit_tags_str
+        }
+
+        for tag in omit_tags:
+            value = self._get_tag(tag)
+            if value:
+                new_tags[tag.value] = value
+        self._file.tags = new_tags
