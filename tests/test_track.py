@@ -23,12 +23,22 @@ def test_comparison(audio_file: Track):
 
 
 @pytest.mark.usefixtures("audio_file")
+def test_eq_invalid(audio_file: Track):
+    (audio_file == object) == NotImplemented
+
+
+@pytest.mark.usefixtures("audio_file")
 def test_sorting(audio_file: Track):
     second = Path(audio_file.path.parent / ("zzzz" + audio_file.path.suffix))
     shutil.copyfile(audio_file.path, second)
     second_file = Track(second)
     assert second_file
     assert sorted([second_file, audio_file]) == [audio_file, second_file]
+
+
+@pytest.mark.usefixtures("audio_file")
+def test_repr(audio_file: Track):
+    str(audio_file) == f"Track('{str(audio_file.path)}')"
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -43,14 +53,14 @@ def test_clear_tag(audio_file: Track):
     assert audio_file.has_tag(Tag.ENCODER)
     assert audio_file.has_tag(Tag.ARTIST)
     assert audio_file.has_tag(Tag.ALBUM)
-    audio_file.clear_tags(keep=[Tag.ENCODER, Tag.ALBUM])
+    audio_file.clear_tags(keep={Tag.ENCODER, Tag.ALBUM})
     assert audio_file.has_tag(Tag.ENCODER)
     assert audio_file.has_tag(Tag.ALBUM)
     assert not audio_file.has_tag(Tag.ARTIST)
     audio_file.clear_tags()
     assert audio_file.has_tag(Tag.ENCODER)
     assert not audio_file.has_tag(Tag.ALBUM)
-    audio_file.clear_tags(keep=[])
+    audio_file.clear_tags(keep=set())
     assert not audio_file.has_tag(Tag.ENCODER)
 
 
@@ -62,7 +72,7 @@ def test_encoder(audio_file: Track):
 
 @pytest.mark.usefixtures("audio_file")
 def test_default_tags(audio_file: Track):
-    audio_file.clear_tags(keep=[])
+    audio_file.clear_tags(keep=set())
     assert audio_file.album == ""
     assert audio_file.genre == ""
     assert audio_file.date == 0
