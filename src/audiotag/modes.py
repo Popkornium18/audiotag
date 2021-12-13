@@ -99,30 +99,20 @@ def clean_mode(args: Dict[str, Any]) -> int:
 
 def copy_mode(args: Dict[str, Any]) -> int:
     try:
-        srcfiles_unsorted = open_tracks(list_files(Path(args["SOURCEFOLDER"])))
-        dstfiles_unsorted = open_tracks(list_files(Path(args["DESTFOLDER"])))
+        srcfiles = sorted(open_tracks(list_files(Path(args["SOURCEFOLDER"]))))
+        dstfiles = sorted(open_tracks(list_files(Path(args["DESTFOLDER"]))))
     except NoSuchDirectoryError as err:
         print(err)
         return 1
-
-    srcfiles = sorted(srcfiles_unsorted, key=lambda x: x.path)  # type: ignore[no-any-return]
-    dstfiles = sorted(dstfiles_unsorted, key=lambda x: x.path)  # type: ignore[no-any-return]
 
     if len(srcfiles) != len(dstfiles):
         print("Different number of files in SOURCEFOLDER and DESTFOLDER. Exiting.")
         return 1
     for srcfile, dstfile in zip(srcfiles, dstfiles):
-        try:
-            # srcfile is never saved so this change is not persistent, just simplifies copying
-            srcfile._file.tags[Tag.ENCODER.value] = dstfile._file.tags[
-                Tag.ENCODER.value
-            ]
-        except KeyError:
-            # Encoder not present in dstfile, so delete it before copying
-            srcfile._file.tags.pop(Tag.ENCODER.value, None)
-        dstfile._file.tags = srcfile._file.tags
+        dstfile.copy_tags(source=srcfile)
         dstfile.save()
         dstfile.close()
+        srcfile.close()
     return 0
 
 
