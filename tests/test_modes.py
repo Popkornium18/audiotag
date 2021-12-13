@@ -4,7 +4,7 @@ import shutil
 from typing import TYPE_CHECKING
 import pytest
 from audiotag.track import Track, Tag
-from audiotag.modes import clean_mode, copy_mode, print_mode, rename_mode
+from audiotag.modes import clean_mode, copy_mode, print_mode, rename_mode, set_mode
 from conftest import FakeTag
 
 if TYPE_CHECKING:
@@ -99,7 +99,7 @@ def test_copy_mode(audio_file: Track):
     os.mkdir(src)
     os.mkdir(dst)
     shutil.copyfile(audio_file.path, src / audio_file.path.name)
-    audio_file.clear_tags(keep=[])
+    audio_file.clear_tags(keep=set())
     audio_file.save()
     audio_file.close()
     shutil.move(audio_file.path, dst / audio_file.path.name)
@@ -185,3 +185,40 @@ def test_rename_mode_existing(
         assert not copytrack_after.title
     copytrack_after.close()
     copytrack_before.close()
+
+
+@pytest.mark.usefixtures("audio_file")
+def test_set_mode(audio_file: Track):
+    audio_file.close()
+    newartist = "SOMEARTIST"
+    newtracknum = 10
+    args: Dict[str, Any] = {
+        "FILE": [str(audio_file.path)],
+        Tag.ARTIST.value.lower(): newartist,
+        Tag.TRACKNUMBER.value.lower(): newtracknum,
+        Tag.ALBUM.value.lower(): None,
+        Tag.DATE.value.lower(): None,
+        Tag.DISCNUMBER.value.lower(): None,
+        Tag.DISCTOTAL.value.lower(): None,
+        Tag.GENRE.value.lower(): None,
+        Tag.TITLE.value.lower(): None,
+        Tag.TRACKTOTAL.value.lower(): None,
+        f"no{Tag.TITLE.value.lower()}": True,
+        f"no{Tag.ALBUM.value.lower()}": False,
+        f"no{Tag.ARTIST.value.lower()}": False,
+        f"no{Tag.DATE.value.lower()}": False,
+        f"no{Tag.DISCNUMBER.value.lower()}": False,
+        f"no{Tag.DISCTOTAL.value.lower()}": False,
+        f"no{Tag.GENRE.value.lower()}": False,
+        f"no{Tag.TRACKNUMBER.value.lower()}": False,
+        f"no{Tag.TRACKTOTAL.value.lower()}": False,
+    }
+    assert audio_file.has_tag(Tag.TITLE)
+    assert not audio_file.artist == [newartist]
+    assert not audio_file.tracknumber == newtracknum
+    error_code = set_mode(args)
+    audio_file = Track(audio_file.path)
+    assert not error_code
+    assert not audio_file.has_tag(Tag.TITLE)
+    assert audio_file.artist == [newartist]
+    assert audio_file.tracknumber == newtracknum
