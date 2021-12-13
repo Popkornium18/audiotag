@@ -4,7 +4,14 @@ import shutil
 from typing import TYPE_CHECKING
 import pytest
 from audiotag.track import Track, Tag
-from audiotag.modes import clean_mode, copy_mode, print_mode, rename_mode, set_mode
+from audiotag.modes import (
+    clean_mode,
+    copy_mode,
+    interactive_mode,
+    print_mode,
+    rename_mode,
+    set_mode,
+)
 from conftest import FakeTag
 
 if TYPE_CHECKING:
@@ -187,6 +194,41 @@ def test_rename_mode_existing(
         assert not copytrack_after.title
     copytrack_after.close()
     copytrack_before.close()
+
+
+@pytest.mark.usefixtures("audio_file")
+def test_interactive_mode(audio_file: Track, monkeypatch: pytest.MonkeyPatch):
+    audio_file.clear_tags(keep=set())
+    audio_file.save()
+    audio_file.close()
+
+    answers = [
+        FakeTag.ARTIST.value,
+        FakeTag.ALBUM.value,
+        FakeTag.GENRE.value,
+        str(FakeTag.DATE.value),
+        FakeTag.TITLE.value,
+    ]
+    monkeypatch.setattr("builtins.input", lambda _: answers.pop(0))
+
+    args: Dict[str, Any] = {
+        "FILE": [str(audio_file.path)],
+    }
+
+    error_code = interactive_mode(args)
+    assert not error_code
+    audio_file_after = Track(audio_file.path)
+    assert audio_file_after
+    assert audio_file_after.artist == [FakeTag.ARTIST.value]
+    assert audio_file_after.album == FakeTag.ALBUM.value
+    assert audio_file_after.genre == FakeTag.GENRE.value
+    assert audio_file_after.date == FakeTag.DATE.value
+    assert audio_file_after.title == FakeTag.TITLE.value
+    assert audio_file_after.tracknumber == FakeTag.TRACKNUMBER.value
+    assert audio_file_after.tracktotal == FakeTag.TRACKTOTAL.value
+    assert audio_file_after.discnumber == FakeTag.DISCNUMBER.value
+    assert audio_file_after.disctotal == FakeTag.DISCTOTAL.value
+    audio_file_after.close()
 
 
 @pytest.mark.usefixtures("audio_file")

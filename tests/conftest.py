@@ -8,10 +8,11 @@ import pytest
 from audiotag.track import Track
 
 if TYPE_CHECKING:
-    pass
+    from typing import Union
 
 
 class Files(Enum):
+    value: str
     AUDIO = "noise.opus"
     IMAGE = "black.jpg"
 
@@ -19,6 +20,7 @@ class Files(Enum):
 class FakeTag(Enum):
     """Enum for fake tag values used in testing"""
 
+    value: Union[str, int]
     ARTIST = "artist"
     ALBUM = "album"
     GENRE = "genre"
