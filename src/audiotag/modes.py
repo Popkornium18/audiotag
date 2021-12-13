@@ -12,7 +12,7 @@ from audiotag.util import (
 )
 
 if TYPE_CHECKING:
-    from typing import Dict, List, Any
+    from typing import Dict, List, Any, Set, Union
 
 
 def print_mode(args: Dict[str, Any]) -> int:
@@ -58,35 +58,32 @@ def interactive_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
-# TODO: remove access to Track._file
 def set_mode(args: Dict[str, Any]) -> int:
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
-    TAGS = [
-        Tag.ALBUM.value,
-        Tag.ARTIST.value,
-        Tag.GENRE.value,
-        Tag.DATE.value,
-        Tag.DISCNUMBER.value,
-        Tag.DISCTOTAL.value,
-        Tag.TRACKNUMBER.value,
-        Tag.TRACKTOTAL.value,
-        Tag.TITLE.value,
-    ]
+
+    TAGS = {
+        Tag.ALBUM,
+        Tag.ARTIST,
+        Tag.GENRE,
+        Tag.DATE,
+        Tag.DISCNUMBER,
+        Tag.DISCTOTAL,
+        Tag.TRACKNUMBER,
+        Tag.TRACKTOTAL,
+        Tag.TITLE,
+    }
+    del_tags: Set[Tag] = {tag for tag in TAGS if args[f"no{tag.value.lower()}"]}
+    set_tags: Dict[Tag, Union[str, int]] = {}
+    for tag in TAGS:
+        if args[tag.value.lower()]:
+            set_tags[tag] = args[tag.value.lower()]
+
     for track in tracklist:
-        modified = False
-        for tag in TAGS:
-            if args[f"no{tag.lower()}"]:
-                try:
-                    track._file.tags.pop(tag)
-                    modified = True
-                except KeyError:
-                    pass
-            if args[tag.lower()]:
-                track._file.tags[tag] = [str(args[tag.lower()])]
-                modified = True
-        if modified:
+        set_modified = track.set_tags(set_tags)
+        del_modified = track.remove_tags(del_tags)
+        if set_modified or del_modified:
             track.save()
-            track.close()
+        track.close()
     return 0
 
 

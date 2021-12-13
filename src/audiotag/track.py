@@ -7,12 +7,13 @@ from enum import Enum
 from pathlib import Path
 
 if TYPE_CHECKING:
-    from typing import List, Optional
+    from typing import List, Optional, Dict, Any, Union, Set
 
 
 class Tag(Enum):
     """Enum with common tag strings"""
 
+    value: str
     ALBUM = "ALBUM"
     ARTIST = "ARTIST"
     DATE = "DATE"
@@ -241,16 +242,31 @@ class Track:
             raise ValueError(f"Check if pattern '{pattern}' is correct")
         return formatted_str
 
+    def set_tags(self, tags: Dict[Tag, Union[str, int]]) -> Union[bool, Any]:
+        """Set the new tags from the given dictionary and return if the tags have changed"""
+        old_tags = self._file.tags.copy()
+        for tag, value in tags.items():
+            value_str = str(value) if isinstance(value, int) else value
+            self._file.tags[tag.value] = [value_str]
+        return not self._file.tags == old_tags
+
+    def remove_tags(self, tags: Set[Tag]) -> Union[bool, Any]:
+        """Remove the given Tags and return if the taglist was actually modified"""
+        old_tags = self._file.tags.copy()
+        for tag in tags:
+            self._file.tags.pop(tag.value)
+        return not self._file.tags == old_tags
+
     def has_tag(self, tag: Tag) -> bool:
         """Returns whether a tag is set"""
         return tag.value in self._file.tags
 
-    def clear_tags(self, keep: List[Tag] = None) -> None:  # type: ignore
+    def clear_tags(self, keep: Optional[Set[Tag]] = None) -> None:
         """
         Remove all tags other than the ones listed in 'keep' which defaults
         to ENCODER.
         """
-        keep = [Tag.ENCODER] if keep is None else keep
+        keep = {Tag.ENCODER} if keep is None else keep
         self._file.tags = {
             keep_tag.value: self._file.tags[keep_tag.value] for keep_tag in keep
         }
