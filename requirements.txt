@@ -1,2 +1,2 @@
-pytaglib==1.4.6
+pytaglib==1.5.0
 readline==6.2.4.1
