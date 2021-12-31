@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 @pytest.mark.usefixtures("audio_file")
 def test_comparison(audio_file: Track):
+    audio_file.close()
     copyfile_name = "lol" + audio_file.path.suffix
     shutil.copyfile(audio_file.path, audio_file.path.with_name(copyfile_name))
     audio_file_same = Track(audio_file.path)
@@ -20,24 +21,30 @@ def test_comparison(audio_file: Track):
     assert audio_file != audio_file_different
     assert audio_file_same > audio_file_different
     assert audio_file_different < audio_file_same
+    audio_file_same.close()
+    audio_file_different.close()
 
 
 @pytest.mark.usefixtures("audio_file")
 def test_eq_invalid(audio_file: Track):
+    audio_file.close()
     (audio_file == object) == NotImplemented
 
 
 @pytest.mark.usefixtures("audio_file")
 def test_sorting(audio_file: Track):
+    audio_file.close()
     second = Path(audio_file.path.parent / ("zzzz" + audio_file.path.suffix))
     shutil.copyfile(audio_file.path, second)
     second_file = Track(second)
     assert second_file
     assert sorted([second_file, audio_file]) == [audio_file, second_file]
+    second_file.close()
 
 
 @pytest.mark.usefixtures("audio_file")
 def test_repr(audio_file: Track):
+    audio_file.close()
     str(audio_file) == f"Track('{str(audio_file.path)}')"
 
 
@@ -46,6 +53,7 @@ def test_has_tag(audio_file: Track):
     audio_file.clear_tags()
     assert audio_file.has_tag(Tag.ENCODER)
     assert not audio_file.has_tag(Tag.ALBUM)
+    audio_file.close()
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -62,10 +70,12 @@ def test_clear_tag(audio_file: Track):
     assert not audio_file.has_tag(Tag.ALBUM)
     audio_file.clear_tags(keep=set())
     assert not audio_file.has_tag(Tag.ENCODER)
+    audio_file.close()
 
 
 @pytest.mark.usefixtures("audio_file")
 def test_encoder(audio_file: Track):
+    audio_file.close()
     with pytest.raises(AttributeError):
         audio_file.encoder = "something"  # type: ignore
 
@@ -73,6 +83,7 @@ def test_encoder(audio_file: Track):
 @pytest.mark.usefixtures("audio_file")
 def test_default_tags(audio_file: Track):
     audio_file.clear_tags(keep=set())
+    audio_file.close()
     assert audio_file.album == ""
     assert audio_file.genre == ""
     assert audio_file.date == 0
@@ -95,6 +106,7 @@ def test_trivial_tags(audio_file: Track):
     assert audio_file.genre == FakeTag.GENRE.value
     assert audio_file.date == FakeTag.DATE.value
     assert audio_file.title == FakeTag.TITLE.value
+    audio_file.close()
 
 
 @pytest.mark.parametrize(
@@ -112,6 +124,7 @@ def test_trivial_tags(audio_file: Track):
 def test_artist(audio_file: Track, artist: str | List[str], expected: List[str]):
     audio_file.artist = artist  # type: ignore
     assert audio_file.artist == expected
+    audio_file.close()
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -131,6 +144,7 @@ def test_discnumber_disctotal(audio_file: Track):
     audio_file.disctotal = 2
     audio_file.discnumber = 2
     assert audio_file.disctotal == 2 and audio_file.discnumber == 2
+    audio_file.close()
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -150,10 +164,12 @@ def test_tracknumber_tracktotal(audio_file: Track):
     audio_file.tracktotal = 2
     audio_file.tracknumber = 2
     assert audio_file.tracktotal == 2 and audio_file.tracknumber == 2
+    audio_file.close()
 
 
 @pytest.mark.usefixtures("audio_file")
 def test_format_broken_pattern(audio_file: Track):
+    audio_file.close()
     with pytest.raises(ValueError):
         audio_file.format_filename(pattern="NotAValidPattern")
 
@@ -163,6 +179,7 @@ def test_format_missing_tags(audio_file: Track):
     audio_file.clear_tags()
     with pytest.raises(ValueError):
         audio_file.format_filename()
+    audio_file.close()
 
 
 @pytest.mark.parametrize(
@@ -204,3 +221,4 @@ def test_format_filename(
     audio_file.discnumber = discnumber
     audio_file.tracktotal = tracktotal
     assert audio_file.format_filename(pattern) == expected
+    audio_file.close()

@@ -32,6 +32,7 @@ def test_open_tracks_invalid(image_dir: Path) -> None:
 @pytest.mark.usefixtures("audio_file")
 def test_list_files(audio_file: Track) -> None:
     assert len(util.list_files(audio_file.path.parent)) == 1
+    audio_file.close()
 
 
 def test_list_files_error() -> None:

@@ -70,6 +70,7 @@ def test_clean_mode(audio_file: Track):
     assert not cleaned_file.has_tag(Tag.TITLE)
     assert not cleaned_file.has_tag(Tag.TRACKNUMBER)
     assert not cleaned_file.has_tag(Tag.TRACKTOTAL)
+    cleaned_file.close()
 
 
 def test_copy_mode_dir_not_exist():
@@ -193,7 +194,6 @@ def test_rename_mode_existing(
     else:
         assert not copytrack_after.title
     copytrack_after.close()
-    copytrack_before.close()
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -266,3 +266,4 @@ def test_set_mode(audio_file: Track):
     assert not audio_file.has_tag(Tag.TITLE)
     assert audio_file.artist == [newartist]
     assert audio_file.tracknumber == newtracknum
+    audio_file.close()
