@@ -124,9 +124,14 @@ def rename_mode(args: Dict[str, Any]) -> int:
         )
         if track.path == new_path:
             continue
-        if new_path.is_file() and not args["force"]:
-            question = f"File '{str(new_path)}' already exists.\nOverwrite it? (y/n): "
-            if not yes_no(question):
-                continue
+        if new_path.is_file():
+            if not args["force"]:
+                question = (
+                    f"File '{str(new_path)}' already exists.\nOverwrite it? (y/n): "
+                )
+                if not yes_no(question):
+                    continue
+            os.remove(new_path)
+        track.close()
         os.rename(src=track.path, dst=new_path)
     return 0
