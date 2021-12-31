@@ -40,29 +40,28 @@ def _module_dir() -> Path:
 
 
 @pytest.fixture(scope="function", name="mixed_dir")
-def fixture_mixed_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+def fixture_mixed_dir(tmp_path: Path) -> Path:
     dir_name = _module_dir()
     input_dir = Path(f"{dir_name}/testdata/")
-    copy_dir = tmp_path_factory.mktemp("tmp-mixed")
-    shutil.copyfile(src=input_dir / Files.AUDIO.value, dst=copy_dir / Files.AUDIO.value)
-    shutil.copyfile(src=input_dir / Files.IMAGE.value, dst=copy_dir / Files.IMAGE.value)
-    return copy_dir
+    shutil.copyfile(src=input_dir / Files.AUDIO.value, dst=tmp_path / Files.AUDIO.value)
+    shutil.copyfile(src=input_dir / Files.IMAGE.value, dst=tmp_path / Files.IMAGE.value)
+    return tmp_path
 
 
 @pytest.fixture(scope="function", name="image_dir")
-def fixture_image_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+def fixture_image_dir(tmp_path: Path) -> Path:
     dir_name = _module_dir()
     image_file = Path(f"{dir_name}/testdata/{Files.IMAGE.value}")
-    copy = tmp_path_factory.mktemp("tmp-image") / Files.IMAGE.value
+    copy = tmp_path / Files.IMAGE.value
     shutil.copyfile(src=image_file, dst=copy)
     return copy.parent
 
 
 @pytest.fixture(scope="function", name="audio_file")
-def fixture_audio_file(tmp_path_factory: pytest.TempPathFactory) -> Track:
+def fixture_audio_file(tmp_path: Path) -> Track:
     dir_name = _module_dir()
     opus_file = Path(f"{dir_name}/testdata/{Files.AUDIO.value}")
-    copy = tmp_path_factory.mktemp("tmp-audio") / Files.AUDIO.value
+    copy = tmp_path / Files.AUDIO.value
     shutil.copyfile(src=opus_file, dst=copy)
     track = Track(copy)
     track.clear_tags()
