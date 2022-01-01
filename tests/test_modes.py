@@ -1,7 +1,6 @@
 from __future__ import annotations
 import os
 import shutil
-from typing import TYPE_CHECKING
 import pytest
 from audiotag.track import Track, Tag
 from audiotag.modes import (
@@ -13,9 +12,6 @@ from audiotag.modes import (
     set_mode,
 )
 from conftest import FakeTag
-
-if TYPE_CHECKING:
-    from typing import Any
 
 
 @pytest.mark.parametrize(
@@ -40,10 +36,7 @@ def test_print_mode(audio_file: Track, artists: list[str], capfd):
 {Tag.TRACKTOTAL.name}: {str(FakeTag.TRACKTOTAL.value)}
 
 """
-    args: dict[str, Any] = {
-        "FILE": [str(audio_file.path)],
-    }
-    error_code = print_mode(args)
+    error_code = print_mode([str(audio_file.path)])
     stdout, stderr = capfd.readouterr()
     assert not error_code
     assert not stderr
@@ -53,10 +46,7 @@ def test_print_mode(audio_file: Track, artists: list[str], capfd):
 @pytest.mark.usefixtures("audio_file")
 def test_clean_mode(audio_file: Track):
     audio_file.close()
-    args: dict[str, Any] = {
-        "FILE": [str(audio_file.path)],
-    }
-    error_code = clean_mode(args)
+    error_code = clean_mode([str(audio_file.path)])
     assert not error_code
     cleaned_file = Track(audio_file.path)
     assert cleaned_file
@@ -74,11 +64,7 @@ def test_clean_mode(audio_file: Track):
 
 
 def test_copy_mode_dir_not_exist():
-    args: dict[str, Any] = {
-        "SOURCEFOLDER": "DoesNotExist",
-        "DESTFOLDER": "DoesNotExistEither",
-    }
-    error_code = copy_mode(args)
+    error_code = copy_mode(source="DoesNotExist", dest="DoesNotExistEither")
     assert error_code == 1
 
 
@@ -92,11 +78,7 @@ def test_copy_mode_too_many_files(audio_file: Track):
     shutil.copyfile(audio_file.path, src / audio_file.path.name)
     shutil.copyfile(audio_file.path, src / ("lmao" + audio_file.path.suffix))
     shutil.move(audio_file.path, dst / audio_file.path.name)
-    args: dict[str, Any] = {
-        "SOURCEFOLDER": str(src),
-        "DESTFOLDER": str(dst),
-    }
-    error_code = copy_mode(args)
+    error_code = copy_mode(source=str(src), dest=str(dst))
     assert error_code == 1
 
 
@@ -112,11 +94,7 @@ def test_copy_mode(audio_file: Track):
     audio_file.save()
     audio_file.close()
     shutil.move(audio_file.path, dst / audio_file.path.name)
-    args: dict[str, Any] = {
-        "SOURCEFOLDER": str(src),
-        "DESTFOLDER": str(dst),
-    }
-    error_code = copy_mode(args)
+    error_code = copy_mode(source=str(src), dest=str(dst))
     assert not error_code
     srcfile = Track(src / audio_file.path.name)
     dstfile = Track(dst / audio_file.path.name)
@@ -152,13 +130,7 @@ def test_rename_mode(
     audio_file.title = title
     audio_file.save()
     audio_file.close()
-
-    args: dict[str, Any] = {
-        "FILE": [str(audio_file.path)],
-        "pattern": pattern,
-    }
-
-    error_code = rename_mode(args)
+    error_code = rename_mode(files=[str(audio_file.path)], pattern=pattern)
     assert not error_code
     new_file = audio_file.path.parent / (expected + audio_file.path.suffix)
     assert new_file.is_file()
@@ -177,15 +149,8 @@ def test_rename_mode_existing(
     copytrack_before.clear_tags()
     copytrack_before.save()
     copytrack_before.close()
-
     monkeypatch.setattr("builtins.input", lambda _: "y" if force else "n")
-
-    args: dict[str, Any] = {
-        "FILE": [str(audio_file.path)],
-        "pattern": "{T}",
-        "force": force,
-    }
-    error_code = rename_mode(args)
+    error_code = rename_mode(files=[str(audio_file.path)], pattern="{T}", force=force)
     assert not error_code
     copytrack_after = Track(copy)
     assert copytrack_after
@@ -211,11 +176,7 @@ def test_interactive_mode(audio_file: Track, monkeypatch: pytest.MonkeyPatch):
     ]
     monkeypatch.setattr("builtins.input", lambda _: answers.pop(0))
 
-    args: dict[str, Any] = {
-        "FILE": [str(audio_file.path)],
-    }
-
-    error_code = interactive_mode(args)
+    error_code = interactive_mode([str(audio_file.path)])
     assert not error_code
     audio_file_after = Track(audio_file.path)
     assert audio_file_after
@@ -236,31 +197,14 @@ def test_set_mode(audio_file: Track):
     audio_file.close()
     newartist = "SOMEARTIST"
     newtracknum = 10
-    args: dict[str, Any] = {
-        "FILE": [str(audio_file.path)],
-        Tag.ARTIST.value.lower(): newartist,
-        Tag.TRACKNUMBER.value.lower(): newtracknum,
-        Tag.ALBUM.value.lower(): None,
-        Tag.DATE.value.lower(): None,
-        Tag.DISCNUMBER.value.lower(): None,
-        Tag.DISCTOTAL.value.lower(): None,
-        Tag.GENRE.value.lower(): None,
-        Tag.TITLE.value.lower(): None,
-        Tag.TRACKTOTAL.value.lower(): None,
-        f"no{Tag.TITLE.value.lower()}": True,
-        f"no{Tag.ALBUM.value.lower()}": False,
-        f"no{Tag.ARTIST.value.lower()}": False,
-        f"no{Tag.DATE.value.lower()}": False,
-        f"no{Tag.DISCNUMBER.value.lower()}": False,
-        f"no{Tag.DISCTOTAL.value.lower()}": False,
-        f"no{Tag.GENRE.value.lower()}": False,
-        f"no{Tag.TRACKNUMBER.value.lower()}": False,
-        f"no{Tag.TRACKTOTAL.value.lower()}": False,
-    }
     assert audio_file.has_tag(Tag.TITLE)
     assert not audio_file.artist == [newartist]
     assert not audio_file.tracknumber == newtracknum
-    error_code = set_mode(args)
+    error_code = set_mode(
+        files=[str(audio_file.path)],
+        remove_tags={Tag.TITLE},
+        set_tags={Tag.ARTIST: newartist, Tag.TRACKNUMBER: newtracknum},
+    )
     audio_file = Track(audio_file.path)
     assert not error_code
     assert not audio_file.has_tag(Tag.TITLE)

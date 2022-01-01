@@ -19,10 +19,11 @@ except ImportError:
     print("Module 'readline' not found")
 
 if TYPE_CHECKING:
-    from typing import Optional, Sequence
+    from typing import Optional, Sequence, Any
 
 
 class Mode(Enum):
+    value: str
     CLEAN = "clean"
     COPY = "copy"
     INTERACTIVE = "interactive"
@@ -43,8 +44,25 @@ def positive_int(string: str) -> int:
     return number
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    """The main function. Starts whatever mode the user specified."""
+class UpdateDict(argparse.Action):
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: str | Sequence[Any] | None,
+        option_string: Optional[str] = None,
+    ):
+        if not isinstance(values, str | int):
+            raise argparse.ArgumentTypeError(
+                f"expected string or integer, got {values!r}"
+            )
+
+        thedict: dict[Tag, str | int] = getattr(namespace, "set_tags")
+        thedict.update({Tag[self.dest.upper()]: values})
+
+
+def make_parser() -> argparse.ArgumentParser:
+    """Creates a parser for the audiotag command line interface"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-v",
@@ -73,6 +91,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         help="rename files based on their tags",
     )
     set_parser = sub_commands.add_parser(name=Mode.SET.value, help="set or delete tags")
+    set_parser.set_defaults(remove_tags=[])
+    set_parser.set_defaults(set_tags={})
 
     for tag in [
         Tag.ARTIST,
@@ -81,14 +101,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         Tag.GENRE,
     ]:
         group = set_parser.add_mutually_exclusive_group()
-        group.add_argument(
-            f"--{str.lower(tag.value)}",
-            action="store",
-        )
+        group.add_argument(f"--{str.lower(tag.value)}", type=str, action=UpdateDict)
         group.add_argument(
             f"--no{str.lower(tag.value)}",
-            action="store_true",
+            dest="remove_tags",
+            action="append_const",
+            const=tag,
         )
+
     for tag in [
         Tag.DATE,
         Tag.TRACKNUMBER,
@@ -98,11 +118,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ]:
         group = set_parser.add_mutually_exclusive_group()
         group.add_argument(
-            f"--{str.lower(tag.value)}", action="store", type=positive_int
+            f"--{str.lower(tag.value)}", type=positive_int, action=UpdateDict
         )
         group.add_argument(
             f"--no{str.lower(tag.value)}",
-            action="store_true",
+            dest="remove_tags",
+            action="append_const",
+            const=tag,
         )
 
     rename_parser.add_argument(
@@ -147,20 +169,32 @@ Defaults to '{N} - {T}' or '{D}-{N} - {T}' (if {D} > 1)""",
     }:
         subparser.add_argument("FILE", nargs="+", help="List of files to tag")
 
-    args = vars(parser.parse_args(argv))
+    return parser
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    """The main function. Starts whatever mode the user specified."""
+
+    args = vars(make_parser().parse_args(argv))
     command = args["command"]
     if command == Mode.PRINT.value:
-        return print_mode(args)
+        return print_mode(args["FILE"])
     elif command == Mode.SET.value:
-        return set_mode(args)
+        return set_mode(
+            remove_tags=set(args["remove_tags"]),
+            set_tags=args["set_tags"],
+            files=args["FILE"],
+        )
     elif command == Mode.CLEAN.value:
-        return clean_mode(args)
+        return clean_mode(args["FILE"])
     elif command == Mode.INTERACTIVE.value:
-        return interactive_mode(args)
+        return interactive_mode(args["FILE"])
     elif command == Mode.RENAME.value:
-        return rename_mode(args)
+        return rename_mode(
+            files=args["FILE"], pattern=args["pattern"], force=args["force"]
+        )
     elif command == Mode.COPY.value:
-        return copy_mode(args)
+        return copy_mode(source=args["SOURCEFOLDER"], dest=args["DESTFOLDER"])
     return 1
 
 

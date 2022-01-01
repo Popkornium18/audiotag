@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 
 if TYPE_CHECKING:
-    from typing import Optional, Any, Union
+    from typing import Optional, Any
 
 
 class Tag(Enum):
@@ -242,7 +242,7 @@ class Track:
             raise ValueError(f"Check if pattern '{pattern}' is correct")
         return formatted_str
 
-    def set_tags(self, tags: dict[Tag, Union[str, int]]) -> Union[bool, Any]:
+    def set_tags(self, tags: dict[Tag, str | int]) -> bool | Any:
         """Set the new tags from the given dictionary and return if the tags have changed"""
         old_tags = self._file.tags.copy()
         for tag, value in tags.items():
@@ -250,7 +250,7 @@ class Track:
             self._file.tags[tag.value] = [value_str]
         return not self._file.tags == old_tags
 
-    def remove_tags(self, tags: set[Tag]) -> Union[bool, Any]:
+    def remove_tags(self, tags: set[Tag]) -> bool | Any:
         """Remove the given Tags and return if the taglist was actually modified"""
         old_tags = self._file.tags.copy()
         for tag in tags:

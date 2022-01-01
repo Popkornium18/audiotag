@@ -12,19 +12,19 @@ from audiotag.util import (
 )
 
 if TYPE_CHECKING:
-    from typing import Any, Union
+    from typing import Optional
 
 
-def print_mode(args: dict[str, Any]) -> int:
+def print_mode(files: list[str]) -> int:
     """Prints all filenames and their tags and correspondig values."""
-    tracklist = open_tracks(strings_to_paths(args["FILE"]))
+    tracklist = open_tracks(strings_to_paths(files))
     for track in tracklist:
         print(track.format_string())
     return 0
 
 
-def interactive_mode(args: dict[str, Any]) -> int:
-    tracklist: list[Track] = open_tracks(strings_to_paths(args["FILE"]))
+def interactive_mode(files: list[str]) -> int:
+    tracklist: list[Track] = open_tracks(strings_to_paths(files))
     artist = input("Artist: ")
     album = input("Albumtitle: ")
     genre = input("Genre: ")
@@ -58,38 +58,22 @@ def interactive_mode(args: dict[str, Any]) -> int:
     return 0
 
 
-def set_mode(args: dict[str, Any]) -> int:
-    tracklist = open_tracks(strings_to_paths(args["FILE"]))
-
-    TAGS = {
-        Tag.ALBUM,
-        Tag.ARTIST,
-        Tag.GENRE,
-        Tag.DATE,
-        Tag.DISCNUMBER,
-        Tag.DISCTOTAL,
-        Tag.TRACKNUMBER,
-        Tag.TRACKTOTAL,
-        Tag.TITLE,
-    }
-    del_tags: set[Tag] = {tag for tag in TAGS if args[f"no{tag.value.lower()}"]}
-    set_tags: dict[Tag, Union[str, int]] = {}
-    for tag in TAGS:
-        if args[tag.value.lower()]:
-            set_tags[tag] = args[tag.value.lower()]
-
+def set_mode(
+    files: list[str], remove_tags: set[Tag], set_tags: dict[Tag, str | int]
+) -> int:
+    tracklist = open_tracks(strings_to_paths(files))
     for track in tracklist:
         set_modified = track.set_tags(set_tags)
-        del_modified = track.remove_tags(del_tags)
+        del_modified = track.remove_tags(remove_tags)
         if set_modified or del_modified:
             track.save()
         track.close()
     return 0
 
 
-def clean_mode(args: dict[str, Any]) -> int:
+def clean_mode(files: list[str]) -> int:
     """Removes all tags from the files except the ENCODER tag (if it exists)."""
-    tracklist = open_tracks(strings_to_paths(args["FILE"]))
+    tracklist = open_tracks(strings_to_paths(files))
     for track in tracklist:
         track.clear_tags()
         track.save()
@@ -97,10 +81,10 @@ def clean_mode(args: dict[str, Any]) -> int:
     return 0
 
 
-def copy_mode(args: dict[str, Any]) -> int:
+def copy_mode(source: str, dest: str) -> int:
     try:
-        srcfiles = sorted(open_tracks(list_files(Path(args["SOURCEFOLDER"]))))
-        dstfiles = sorted(open_tracks(list_files(Path(args["DESTFOLDER"]))))
+        srcfiles = sorted(open_tracks(list_files(Path(source))))
+        dstfiles = sorted(open_tracks(list_files(Path(dest))))
     except NoSuchDirectoryError as err:
         print(err)
         return 1
@@ -116,16 +100,18 @@ def copy_mode(args: dict[str, Any]) -> int:
     return 0
 
 
-def rename_mode(args: dict[str, Any]) -> int:
-    tracklist = open_tracks(strings_to_paths(args["FILE"]))
+def rename_mode(
+    files: list[str], pattern: Optional[str] = None, force: bool = False
+) -> int:
+    tracklist = open_tracks(strings_to_paths(files))
     for track in tracklist:
         new_path = track.path.parent / (
-            track.format_filename(args["pattern"]) + track.path.suffix
+            track.format_filename(pattern) + track.path.suffix
         )
         if track.path == new_path:
             continue
         if new_path.is_file():
-            if not args["force"]:
+            if not force:
                 question = (
                     f"File '{str(new_path)}' already exists.\nOverwrite it? (y/n): "
                 )
