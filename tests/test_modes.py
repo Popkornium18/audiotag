@@ -15,7 +15,7 @@ from audiotag.modes import (
 from conftest import FakeTag
 
 if TYPE_CHECKING:
-    from typing import Dict, List, Any
+    from typing import Any
 
 
 @pytest.mark.parametrize(
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     [["lel"], ["lol", "lul"]],
 )
 @pytest.mark.usefixtures("audio_file")
-def test_print_mode(audio_file: Track, artists: List[str], capfd):
+def test_print_mode(audio_file: Track, artists: list[str], capfd):
     audio_file.artist = artists
     audio_file.save()
     audio_file.close()
@@ -40,7 +40,7 @@ def test_print_mode(audio_file: Track, artists: List[str], capfd):
 {Tag.TRACKTOTAL.name}: {str(FakeTag.TRACKTOTAL.value)}
 
 """
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "FILE": [str(audio_file.path)],
     }
     error_code = print_mode(args)
@@ -53,7 +53,7 @@ def test_print_mode(audio_file: Track, artists: List[str], capfd):
 @pytest.mark.usefixtures("audio_file")
 def test_clean_mode(audio_file: Track):
     audio_file.close()
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "FILE": [str(audio_file.path)],
     }
     error_code = clean_mode(args)
@@ -74,7 +74,7 @@ def test_clean_mode(audio_file: Track):
 
 
 def test_copy_mode_dir_not_exist():
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "SOURCEFOLDER": "DoesNotExist",
         "DESTFOLDER": "DoesNotExistEither",
     }
@@ -92,7 +92,7 @@ def test_copy_mode_too_many_files(audio_file: Track):
     shutil.copyfile(audio_file.path, src / audio_file.path.name)
     shutil.copyfile(audio_file.path, src / ("lmao" + audio_file.path.suffix))
     shutil.move(audio_file.path, dst / audio_file.path.name)
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "SOURCEFOLDER": str(src),
         "DESTFOLDER": str(dst),
     }
@@ -112,7 +112,7 @@ def test_copy_mode(audio_file: Track):
     audio_file.save()
     audio_file.close()
     shutil.move(audio_file.path, dst / audio_file.path.name)
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "SOURCEFOLDER": str(src),
         "DESTFOLDER": str(dst),
     }
@@ -153,7 +153,7 @@ def test_rename_mode(
     audio_file.save()
     audio_file.close()
 
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "FILE": [str(audio_file.path)],
         "pattern": pattern,
     }
@@ -180,7 +180,7 @@ def test_rename_mode_existing(
 
     monkeypatch.setattr("builtins.input", lambda _: "y" if force else "n")
 
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "FILE": [str(audio_file.path)],
         "pattern": "{T}",
         "force": force,
@@ -211,7 +211,7 @@ def test_interactive_mode(audio_file: Track, monkeypatch: pytest.MonkeyPatch):
     ]
     monkeypatch.setattr("builtins.input", lambda _: answers.pop(0))
 
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "FILE": [str(audio_file.path)],
     }
 
@@ -236,7 +236,7 @@ def test_set_mode(audio_file: Track):
     audio_file.close()
     newartist = "SOMEARTIST"
     newtracknum = 10
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         "FILE": [str(audio_file.path)],
         Tag.ARTIST.value.lower(): newartist,
         Tag.TRACKNUMBER.value.lower(): newtracknum,

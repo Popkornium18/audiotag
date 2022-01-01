@@ -1,13 +1,9 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import TYPE_CHECKING
 import pytest
 import shutil
 from conftest import FakeTag
 from audiotag.track import Track, Tag, Pattern
-
-if TYPE_CHECKING:
-    from typing import List
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -121,7 +117,7 @@ def test_trivial_tags(audio_file: Track):
     ],
 )
 @pytest.mark.usefixtures("audio_file")
-def test_artist(audio_file: Track, artist: str | List[str], expected: List[str]):
+def test_artist(audio_file: Track, artist: str | list[str], expected: list[str]):
     audio_file.artist = artist  # type: ignore
     assert audio_file.artist == expected
     audio_file.close()
@@ -209,7 +205,7 @@ def test_format_missing_tags(audio_file: Track):
 @pytest.mark.usefixtures("audio_file")
 def test_format_filename(
     audio_file: Track,
-    artists: List[str],
+    artists: list[str],
     pattern: str,
     disctotal: int,
     discnumber: int,
