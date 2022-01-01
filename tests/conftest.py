@@ -1,14 +1,10 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 from enum import Enum
 from pathlib import Path
 import shutil
 import sys
 import pytest
 from audiotag.track import Track
-
-if TYPE_CHECKING:
-    from typing import Union
 
 
 class Files(Enum):
@@ -20,7 +16,6 @@ class Files(Enum):
 class FakeTag(Enum):
     """Enum for fake tag values used in testing"""
 
-    value: Union[str, int]
     ARTIST = "artist"
     ALBUM = "album"
     GENRE = "genre"
