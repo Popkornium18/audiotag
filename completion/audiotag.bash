@@ -7,6 +7,7 @@ _audiotag_completions()
 	local lastcommand=$(_audiotag_lastcommand)
 	local commands=(print interactive set clean copy rename -v -h --version --help)
 	local rename_commands=(--pattern= --force -f)
+	local clean_commands=(--keep= -k)
 	local set_commands=(--noartist --notitle --noalbum --nodate --nogenre\
 		--notracknumber --notracktotal --nodiscnumber --nodisctotal\
 		--artist= --title= --album= --date= --genre= --tracknumber=\
@@ -16,13 +17,24 @@ _audiotag_completions()
 		COMPREPLY=($(compgen -W "${commands[*]}" -- ${cur}))
 	else
 		case ${lastcommand} in
-			print|interactive|clean)
+			print|interactive)
 				compopt -o default
 				COMPREPLY=()
 				;;
 			copy)
 				compopt -o dirnames
 				COMPREPLY=()
+				;;
+      clean)
+				if [[ ${cur} == -* ]]; then
+					if [[ ${cur} == --p* ]]; then
+						compopt -o nospace
+					fi
+					COMPREPLY=($(compgen -W "${clean_commands[*]}" -- ${cur}))
+				else
+					compopt -o default
+					COMPREPLY=()
+				fi
 				;;
 			rename)
 				if [[ ${cur} == -* ]]; then
@@ -53,7 +65,7 @@ _audiotag_completions()
 _audiotag_lastcommand()
 {
 	local firstword i
- 
+
 	firstword=
 	for ((i = 1; i < ${#COMP_WORDS[@]}; ++i)); do
 		if [[ ${COMP_WORDS[i]} != -* ]]; then
@@ -61,7 +73,7 @@ _audiotag_lastcommand()
 			break
 		fi
 	done
- 
+
 	echo $firstword
 }
 

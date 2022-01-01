@@ -124,7 +124,9 @@ $ audiotag set --artist=Om --album="Conference of the Birds" --nodiscnumber 01-a
 
 ### Clean
 
-The `clean` subcommand removes all tags from the file _except_ the `ENCODER` tag.
+The `clean` subcommand removes all tags from the given files.
+If you want to keep certain tags, you can specify them using the `--keep` parameter.
+If none are specified, audiotag defaults to keeping the `ENCODER` tag.
 
 ### Rename
 
