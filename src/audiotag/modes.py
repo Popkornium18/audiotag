@@ -71,11 +71,11 @@ def set_mode(
     return 0
 
 
-def clean_mode(files: list[str]) -> int:
-    """Removes all tags from the files except the ENCODER tag (if it exists)."""
+def clean_mode(files: list[str], keep: Optional[set[Tag]]) -> int:
+    """Removes all tags from the files"""
     tracklist = open_tracks(strings_to_paths(files))
     for track in tracklist:
-        track.clear_tags()
+        track.clear_tags(keep=keep)
         track.save()
         track.close()
     return 0

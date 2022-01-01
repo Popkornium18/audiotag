@@ -73,8 +73,16 @@ def make_parser() -> argparse.ArgumentParser:
     sub_commands = parser.add_subparsers(dest="command")
     sub_commands.required = True
     clean_parser = sub_commands.add_parser(
-        name=Mode.CLEAN.value, help=f"delete all tags except '{Tag.ENCODER.value}'"
+        name=Mode.CLEAN.value, help="delete all tags"
     )
+    clean_parser.add_argument(
+        "-k",
+        "--keep",
+        action="append",
+        choices=[tag.value for tag in Tag],
+        help=f"specify tags to keep. Defaults to '{Tag.ENCODER.value}'",
+    )
+    clean_parser.set_defaults(keep=[])
     copy_parser = sub_commands.add_parser(
         name=Mode.COPY.value,
         help="copy the tags from files in one folder to those in another folder",
@@ -186,7 +194,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             files=args["FILE"],
         )
     elif command == Mode.CLEAN.value:
-        return clean_mode(args["FILE"])
+        return clean_mode(
+            files=args["FILE"],
+            keep=None if not args["keep"] else {Tag(tag) for tag in args["keep"]},
+        )
     elif command == Mode.INTERACTIVE.value:
         return interactive_mode(args["FILE"])
     elif command == Mode.RENAME.value:

@@ -46,7 +46,7 @@ def test_print_mode(audio_file: Track, artists: list[str], capfd):
 @pytest.mark.usefixtures("audio_file")
 def test_clean_mode(audio_file: Track):
     audio_file.close()
-    error_code = clean_mode([str(audio_file.path)])
+    error_code = clean_mode(files=[str(audio_file.path)], keep=None)
     assert not error_code
     cleaned_file = Track(audio_file.path)
     assert cleaned_file
