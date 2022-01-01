@@ -12,10 +12,10 @@ from audiotag.util import (
 )
 
 if TYPE_CHECKING:
-    from typing import Dict, List, Any, Set, Union
+    from typing import Any, Union
 
 
-def print_mode(args: Dict[str, Any]) -> int:
+def print_mode(args: dict[str, Any]) -> int:
     """Prints all filenames and their tags and correspondig values."""
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
@@ -23,14 +23,14 @@ def print_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
-def interactive_mode(args: Dict[str, Any]) -> int:
-    tracklist: List[Track] = open_tracks(strings_to_paths(args["FILE"]))
+def interactive_mode(args: dict[str, Any]) -> int:
+    tracklist: list[Track] = open_tracks(strings_to_paths(args["FILE"]))
     artist = input("Artist: ")
     album = input("Albumtitle: ")
     genre = input("Genre: ")
     date = int(input("Date: "))
     parent_dirs = {t.path.parent for t in tracklist}
-    discs: List[List[Track]] = []
+    discs: list[list[Track]] = []
     for parent in sorted(parent_dirs):
         discs.append(sorted([t for t in tracklist if t.path.parent == parent]))
 
@@ -58,7 +58,7 @@ def interactive_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
-def set_mode(args: Dict[str, Any]) -> int:
+def set_mode(args: dict[str, Any]) -> int:
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
 
     TAGS = {
@@ -72,8 +72,8 @@ def set_mode(args: Dict[str, Any]) -> int:
         Tag.TRACKTOTAL,
         Tag.TITLE,
     }
-    del_tags: Set[Tag] = {tag for tag in TAGS if args[f"no{tag.value.lower()}"]}
-    set_tags: Dict[Tag, Union[str, int]] = {}
+    del_tags: set[Tag] = {tag for tag in TAGS if args[f"no{tag.value.lower()}"]}
+    set_tags: dict[Tag, Union[str, int]] = {}
     for tag in TAGS:
         if args[tag.value.lower()]:
             set_tags[tag] = args[tag.value.lower()]
@@ -87,7 +87,7 @@ def set_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
-def clean_mode(args: Dict[str, Any]) -> int:
+def clean_mode(args: dict[str, Any]) -> int:
     """Removes all tags from the files except the ENCODER tag (if it exists)."""
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
@@ -97,7 +97,7 @@ def clean_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
-def copy_mode(args: Dict[str, Any]) -> int:
+def copy_mode(args: dict[str, Any]) -> int:
     try:
         srcfiles = sorted(open_tracks(list_files(Path(args["SOURCEFOLDER"]))))
         dstfiles = sorted(open_tracks(list_files(Path(args["DESTFOLDER"]))))
@@ -116,7 +116,7 @@ def copy_mode(args: Dict[str, Any]) -> int:
     return 0
 
 
-def rename_mode(args: Dict[str, Any]) -> int:
+def rename_mode(args: dict[str, Any]) -> int:
     tracklist = open_tracks(strings_to_paths(args["FILE"]))
     for track in tracklist:
         new_path = track.path.parent / (

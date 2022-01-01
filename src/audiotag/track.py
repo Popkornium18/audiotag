@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 
 if TYPE_CHECKING:
-    from typing import List, Optional, Dict, Any, Union, Set
+    from typing import Optional, Any, Union
 
 
 class Tag(Enum):
@@ -60,12 +60,12 @@ class Track:
         return encoder[0] if encoder else ""
 
     @property
-    def artist(self) -> List[str]:
+    def artist(self) -> list[str]:
         artist = self._get_tag(Tag.ARTIST)
         return artist if artist else [""]
 
     @artist.setter
-    def artist(self, artist: List[str] | str) -> None:  # type: ignore
+    def artist(self, artist: list[str] | str) -> None:  # type: ignore
         if isinstance(artist, str):
             self._file.tags[Tag.ARTIST.value] = [artist]
         else:
@@ -167,13 +167,13 @@ class Track:
             )
         self._file.tags[Tag.DISCTOTAL.value] = [str(disctotal)]
 
-    def _get_tag(self, tag: Tag) -> Optional[List[str]]:
+    def _get_tag(self, tag: Tag) -> Optional[list[str]]:
         """
         Returns the given tag as a list of strings or None if the tag is missing
         """
         if not self.has_tag(tag):
             return None
-        tag_val: List[str] = self._file.tags[tag.value]
+        tag_val: list[str] = self._file.tags[tag.value]
         return tag_val
 
     def save(self) -> None:
@@ -191,7 +191,7 @@ class Track:
 
     def format_filename(self, pattern: Optional[str] = None) -> str:
         """Format a string according to the given format string"""
-        missing_tags: List[Tag] = [
+        missing_tags: list[Tag] = [
             tag
             for tag in {
                 Tag.ARTIST,
@@ -242,7 +242,7 @@ class Track:
             raise ValueError(f"Check if pattern '{pattern}' is correct")
         return formatted_str
 
-    def set_tags(self, tags: Dict[Tag, Union[str, int]]) -> Union[bool, Any]:
+    def set_tags(self, tags: dict[Tag, Union[str, int]]) -> Union[bool, Any]:
         """Set the new tags from the given dictionary and return if the tags have changed"""
         old_tags = self._file.tags.copy()
         for tag, value in tags.items():
@@ -250,7 +250,7 @@ class Track:
             self._file.tags[tag.value] = [value_str]
         return not self._file.tags == old_tags
 
-    def remove_tags(self, tags: Set[Tag]) -> Union[bool, Any]:
+    def remove_tags(self, tags: set[Tag]) -> Union[bool, Any]:
         """Remove the given Tags and return if the taglist was actually modified"""
         old_tags = self._file.tags.copy()
         for tag in tags:
@@ -261,7 +261,7 @@ class Track:
         """Returns whether a tag is set"""
         return tag.value in self._file.tags
 
-    def clear_tags(self, keep: Optional[Set[Tag]] = None) -> None:
+    def clear_tags(self, keep: Optional[set[Tag]] = None) -> None:
         """
         Remove all tags other than the ones listed in 'keep' which defaults
         to ENCODER.
@@ -271,7 +271,7 @@ class Track:
             keep_tag.value: self._file.tags[keep_tag.value] for keep_tag in keep
         }
 
-    def copy_tags(self, source: Track, omit_tags: Optional[Set[Tag]] = None) -> None:
+    def copy_tags(self, source: Track, omit_tags: Optional[set[Tag]] = None) -> None:
         """
         Copy the tags from the given Track to this one. Tags in omit_tags are
         not copied. omit_tags defaults to ENCODER.

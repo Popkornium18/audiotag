@@ -1,8 +1,4 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import Dict, List
 
 version: str
 
@@ -42,8 +38,8 @@ class File:
     path: str
     readOnly: bool
     sampleRate: int
-    tags: Dict[str, List[str]]
-    unsupported: List[str]
+    tags: dict[str, list[str]]
+    unsupported: list[str]
     def close(self) -> None:
         """
         Closes the file by deleting the underlying Taglib::File object. This will close any open
@@ -51,10 +47,10 @@ class File:
         raise an exception.
         """
         pass
-    def removeUnsupportedProperties(self, properties: List[str]) -> None:
+    def removeUnsupportedProperties(self, properties: list[str]) -> None:
         """This is a direct binding for the corresponding TagLib method."""
         pass
-    def save(self) -> Dict[str, List[str]]:
+    def save(self) -> dict[str, list[str]]:
         """
         Store the tags currently hold in the `tags` attribute into the file.
 
