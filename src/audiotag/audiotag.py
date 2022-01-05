@@ -13,11 +13,6 @@ from audiotag.modes import (
     interactive_mode,
 )
 
-try:
-    import readline  # noqa: F401
-except ImportError:
-    print("Module 'readline' not found")
-
 if TYPE_CHECKING:
     from typing import Optional, Sequence, Any
 
