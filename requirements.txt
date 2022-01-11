@@ -1,1 +1,2 @@
+prompt-toolkit==3.0.24
 pytaglib==1.5.0

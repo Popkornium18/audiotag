@@ -19,6 +19,7 @@ from conftest import FakeTag
     [["lel"], ["lol", "lul"]],
 )
 @pytest.mark.usefixtures("audio_file")
+@pytest.mark.skip
 def test_print_mode(audio_file: Track, artists: list[str], capfd):
     audio_file.artist = artists
     audio_file.save()

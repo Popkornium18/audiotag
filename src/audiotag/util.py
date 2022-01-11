@@ -1,6 +1,12 @@
 from __future__ import annotations
-from audiotag.track import Track
 from pathlib import Path
+from prompt_toolkit import HTML
+from prompt_toolkit.formatted_text.base import FormattedText, to_formatted_text
+from prompt_toolkit.shortcuts.prompt import prompt
+from prompt_toolkit.shortcuts.utils import print_formatted_text
+from prompt_toolkit.validation import ValidationError, Validator
+from audiotag import styles
+from audiotag.track import Track
 
 
 class NoSuchDirectoryError(Exception):
@@ -11,16 +17,57 @@ class NoAudioFilesFoundError(Exception):
     pass
 
 
+def _validate_non_empty(text: str):
+    if not text:
+        raise ValidationError(message="Input must not be empty", cursor_position=0)
+
+
+class NonEmptyValidator(Validator):
+    def validate(self, document):
+        text = document.text
+        _validate_non_empty(text)
+
+
+class YesNoValidator(Validator):
+    def validate(self, document):
+        text = document.text
+        _validate_non_empty(text)
+
+        if text.lower() not in ["y", "n"]:
+            raise ValidationError(
+                message="Answer must be 'y' or 'n'", cursor_position=1
+            )
+
+
+class NumberValidator(Validator):
+    def validate(self, document):
+        text = document.text
+        _validate_non_empty(text)
+
+        if text and not text.isdigit():
+            i = 0
+
+            # Get index of first non numeric character.
+            # We want to move the cursor here.
+            for i, c in enumerate(text):
+                if not c.isdigit():
+                    break
+
+            raise ValidationError(message="Input must be a number", cursor_position=i)
+
+
 def yes_no(question: str) -> bool:
     """
     Continuously asks a yes/no question until user input is in [yYnN].
     Returns True or False respectively.
     """
-    YESNO_MAP = {"y": True, "n": False}
-    choice = ""
-    while choice not in ["y", "n"]:
-        choice = input(question).lower()
-    return YESNO_MAP[choice]
+
+    answer = prompt(
+        message=question,
+        default="y",
+        validator=YesNoValidator(),
+    )
+    return answer.lower() == "y"
 
 
 def strings_to_paths(strings: list[str]) -> list[Path]:
@@ -56,3 +103,22 @@ def list_files(directory: Path) -> list[Path]:
 
     children = [child for child in directory.iterdir() if child.is_file()]
     return children
+
+
+def formatted_text_from_str(text: str) -> FormattedText:
+    """
+    Creates FormattedText from a string containing HTML tags
+    """
+    return to_formatted_text(HTML(text))
+
+
+def print_to_console(text: str | HTML) -> None:
+    """
+    Prints the given text as styled if it is HTML or plain text if it is a str
+    """
+    if isinstance(text, HTML):
+        print_formatted_text(to_formatted_text(text), style=styles.style_track)
+    elif isinstance(text, str):
+        print(text)
+    else:
+        raise ValueError(f"Expected str or HTML, got {type(text)}")

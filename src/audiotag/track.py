@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import taglib
 from enum import Enum
 from pathlib import Path
+from prompt_toolkit.formatted_text import HTML
 
 if TYPE_CHECKING:
     from typing import Optional, Any
@@ -182,12 +183,23 @@ class Track:
     def close(self) -> None:
         self._file.close()
 
-    def format_string(self) -> str:
-        """Format a human readable string"""
+    def tags_string(self) -> str:
+        """Format tags as a human readable string"""
         string = f"Filename: {str(self.path)}\n"
         for tag, value in self._file.tags.items():
-            string += f"{tag}: {value[0] if len(value) == 1 else value}\n"
+            string += f"{tag}: {', '.join([f'{v}' for v in value])}\n"
         return string
+
+    def tags_html(self) -> HTML:
+        """Format tags as a HTML string. The content is the same as Track.tags_string()"""
+        string = f"<tag>Filename</tag>: <path>{str(self.path)}</path>\n"
+        for tag, value in self._file.tags.items():
+            string += f"<tag>{tag}</tag>: {', '.join([f'<value>{v}</value>' for v in value])}\n"
+        return HTML(string)
+
+    def format_tags(self, as_html: bool) -> str | HTML:
+        """Format tags as HTML or str"""
+        return self.tags_html() if as_html else self.tags_string()
 
     def format_filename(self, pattern: Optional[str] = None) -> str:
         """Format a string according to the given format string"""
