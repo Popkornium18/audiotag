@@ -268,7 +268,9 @@ class Track:
         """
         keep = {Tag.ENCODER} if keep is None else keep
         self._file.tags = {
-            keep_tag.value: self._file.tags[keep_tag.value] for keep_tag in keep
+            tag.value: self._file.tags[tag.value]
+            for tag in keep
+            if tag.value in self._file.tags
         }
 
     def copy_tags(self, source: Track, omit_tags: Optional[set[Tag]] = None) -> None:
