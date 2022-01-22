@@ -70,6 +70,30 @@ def test_clear_tag(audio_file: Track):
 
 
 @pytest.mark.usefixtures("audio_file")
+def test_clear_tag_missing_keep(audio_file: Track):
+    assert audio_file.has_tag(Tag.ENCODER)
+    assert audio_file.has_tag(Tag.ALBUM)
+    audio_file.clear_tags(
+        keep={
+            Tag.ALBUM,
+            Tag.ARTIST,
+            Tag.DATE,
+            Tag.DISCNUMBER,
+            Tag.DISCTOTAL,
+            Tag.GENRE,
+            Tag.TITLE,
+            Tag.TRACKNUMBER,
+            Tag.TRACKTOTAL,
+        }
+    )
+    assert not audio_file.has_tag(Tag.ENCODER)
+    assert audio_file.has_tag(Tag.ALBUM)
+    audio_file.clear_tags(keep={Tag.ENCODER})
+    assert not audio_file.has_tag(Tag.ALBUM)
+    audio_file.close()
+
+
+@pytest.mark.usefixtures("audio_file")
 def test_encoder(audio_file: Track):
     audio_file.close()
     with pytest.raises(AttributeError):
