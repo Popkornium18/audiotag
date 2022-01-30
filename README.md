@@ -169,6 +169,3 @@ Note that the `ENCODER` tag ist _not_ copied.
 
 The following dependencies are needed to run audiotag:
 * [pytaglib](https://pypi.org/project/pytaglib/): Python wrapper for accessing TagLib
-
-Optional dependencies are:
-* [gnureadline](https://pypi.org/project/gnureadline/): For better user input (Readline should already be installed on any Linux system)

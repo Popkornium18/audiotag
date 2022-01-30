@@ -8,14 +8,6 @@ if TYPE_CHECKING:
     from audiotag.track import Track
 
 
-@pytest.mark.parametrize(
-    "input,expected", [("Y", True), ("y", True), ("N", False), ("n", False)]
-)
-def test_yes_no(monkeypatch: pytest.MonkeyPatch, input: str, expected: bool) -> None:
-    monkeypatch.setattr("builtins.input", lambda _: input)
-    assert util.yes_no("Testing yes_no: ") == expected
-
-
 @pytest.mark.usefixtures("mixed_dir")
 def test_open_tracks_mixed(mixed_dir: Path) -> None:
     files = util.list_files(mixed_dir)

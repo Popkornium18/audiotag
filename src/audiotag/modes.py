@@ -1,14 +1,21 @@
 from __future__ import annotations
 from pathlib import Path
+import sys
 from typing import TYPE_CHECKING
 import os
+from prompt_toolkit import prompt
+from audiotag import styles
 from audiotag.track import Track, Tag
 from audiotag.util import (
     NoSuchDirectoryError,
+    NonEmptyValidator,
+    NumberValidator,
+    formatted_text_from_str,
     yes_no,
     open_tracks,
     list_files,
     strings_to_paths,
+    print_to_console,
 )
 
 if TYPE_CHECKING:
@@ -19,16 +26,51 @@ def print_mode(files: list[str]) -> int:
     """Prints all filenames and their tags and correspondig values."""
     tracklist = open_tracks(strings_to_paths(files))
     for track in tracklist:
-        print(track.format_string())
+        text = track.format_tags(as_html=sys.stdout.isatty())
+        print_to_console(text)
     return 0
 
 
 def interactive_mode(files: list[str]) -> int:
     tracklist: list[Track] = open_tracks(strings_to_paths(files))
-    artist = input("Artist: ")
-    album = input("Albumtitle: ")
-    genre = input("Genre: ")
-    date = int(input("Date: "))
+
+    tags: dict[Tag, list[str]] = {
+        Tag.ARTIST: list({t.artist[0] for t in tracklist}),
+        Tag.ALBUM: list({t.album for t in tracklist}),
+        Tag.GENRE: list({t.genre for t in tracklist}),
+        Tag.DATE: list({"" if t.date == 0 else str(t.date) for t in tracklist}),
+    }
+    defaults: dict[Tag, str] = {
+        tag: "" if len(value) > 1 else value[0] for tag, value in tags.items()
+    }
+
+    artist = prompt(
+        message=formatted_text_from_str("<tag>Artist</tag>: "),
+        default=defaults[Tag.ARTIST],
+        style=styles.style_track,
+        validator=NonEmptyValidator(),
+    )
+    album = prompt(
+        message=formatted_text_from_str("<tag>Albumtitle</tag>: "),
+        default=defaults[Tag.ALBUM],
+        style=styles.style_track,
+        validator=NonEmptyValidator(),
+    )
+    genre = prompt(
+        message=formatted_text_from_str("<tag>Genre</tag>: "),
+        default=defaults[Tag.GENRE],
+        style=styles.style_track,
+        validator=NonEmptyValidator(),
+    )
+    date = int(
+        prompt(
+            message=formatted_text_from_str("<tag>Date</tag>: "),
+            default=defaults[Tag.DATE],
+            style=styles.style_track,
+            validator=NumberValidator(),
+        )
+    )
+
     parent_dirs = {t.path.parent for t in tracklist}
     discs: list[list[Track]] = []
     for parent in sorted(parent_dirs):
@@ -40,7 +82,14 @@ def interactive_mode(files: list[str]) -> int:
         for tracknumber, track in enumerate(disc, start=1):
             print(track.path.name)
             prefix = f"Disc {discnumber}, "
-            title = input(f"{prefix if disctotal > 1 else ''}Track {tracknumber}: ")
+            title = prompt(
+                message=formatted_text_from_str(
+                    f"<tag>{prefix if disctotal > 1 else ''}Track {tracknumber}</tag>: "
+                ),
+                default=track.title,
+                style=styles.style_track,
+                validator=NonEmptyValidator(),
+            )
             track.artist = artist  # type: ignore
             track.title = title
             track.album = album
