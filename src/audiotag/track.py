@@ -201,7 +201,12 @@ class Track:
         """Format tags as a HTML string. The content is the same as Track.tags_string()"""
         string = f"<tag>Filename</tag>: <path>{str(self.path)}</path>\n"
         for tag, value in self._file.tags.items():
-            string += f"<tag>{tag}</tag>: {', '.join([f'<value>{v}</value>' for v in value])}\n"
+            value_format = (
+                ", ".join([f"<valuemultiple>{v}</valuemultiple>" for v in value])
+                if len(value) > 1
+                else value[0]
+            )
+            string += f"<tag>{tag}</tag>: {value_format}\n"
         return HTML(string)
 
     def format_tags(self, as_html: bool) -> str | HTML:

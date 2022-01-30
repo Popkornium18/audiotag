@@ -7,10 +7,13 @@ from prompt_toolkit import prompt
 from audiotag import styles
 from audiotag.track import Track, Tag
 from audiotag.util import (
+    VALUE_SEP,
+    ListValidator,
     NoSuchDirectoryError,
     NonEmptyValidator,
     NumberValidator,
     formatted_text_from_str,
+    get_toolbar_text,
     yes_no,
     open_tracks,
     list_files,
@@ -35,33 +38,42 @@ def interactive_mode(files: list[str]) -> int:
     tracklist: list[Track] = open_tracks(strings_to_paths(files))
 
     tags: dict[Tag, list[str]] = {
-        Tag.ARTIST: list({t.artist[0] for t in tracklist}),
+        Tag.ARTIST: list({VALUE_SEP.join(t.artist) for t in tracklist}),
         Tag.ALBUM: list({t.album for t in tracklist}),
-        Tag.GENRE: list({t.genre[0] for t in tracklist}),
+        Tag.GENRE: list({VALUE_SEP.join(t.genre) for t in tracklist}),
         Tag.DATE: list({"" if t.date == 0 else str(t.date) for t in tracklist}),
     }
     defaults: dict[Tag, str] = {
         tag: "" if len(value) > 1 else value[0] for tag, value in tags.items()
     }
 
-    artist = prompt(
+    artist_raw = prompt(
         message=formatted_text_from_str("<tag>Artist</tag>: "),
         default=defaults[Tag.ARTIST],
         style=styles.style_track,
-        validator=NonEmptyValidator(),
+        bottom_toolbar=get_toolbar_text,
+        validator=ListValidator(),
     )
+    artist_list = artist_raw.split(VALUE_SEP)
+    artist_tag = [v.replace(r"\/", "/") for v in artist_list]
+
     album = prompt(
         message=formatted_text_from_str("<tag>Albumtitle</tag>: "),
         default=defaults[Tag.ALBUM],
         style=styles.style_track,
         validator=NonEmptyValidator(),
     )
-    genre = prompt(
+
+    genre_raw = prompt(
         message=formatted_text_from_str("<tag>Genre</tag>: "),
         default=defaults[Tag.GENRE],
         style=styles.style_track,
-        validator=NonEmptyValidator(),
+        bottom_toolbar=get_toolbar_text,
+        validator=ListValidator(),
     )
+    genre_list = genre_raw.split(VALUE_SEP)
+    genre_tag = [v.replace(r"\/", "/") for v in genre_list]
+
     date = int(
         prompt(
             message=formatted_text_from_str("<tag>Date</tag>: "),
@@ -90,8 +102,8 @@ def interactive_mode(files: list[str]) -> int:
                 style=styles.style_track,
                 validator=NonEmptyValidator(),
             )
-            track.artist = artist  # type: ignore
-            track.genre = genre  # type: ignore
+            track.artist = artist_tag  # type: ignore
+            track.genre = genre_tag  # type: ignore
             track.title = title
             track.album = album
             track.date = date

@@ -1,12 +1,19 @@
 from __future__ import annotations
 from pathlib import Path
+from typing import TYPE_CHECKING
 from prompt_toolkit import HTML
 from prompt_toolkit.formatted_text.base import FormattedText, to_formatted_text
+from prompt_toolkit.application.current import get_app
 from prompt_toolkit.shortcuts.prompt import prompt
 from prompt_toolkit.shortcuts.utils import print_formatted_text
 from prompt_toolkit.validation import ValidationError, Validator
 from audiotag import styles
 from audiotag.track import Track
+
+if TYPE_CHECKING:
+    pass
+
+VALUE_SEP = "//"
 
 
 class NoSuchDirectoryError(Exception):
@@ -17,6 +24,25 @@ class NoAudioFilesFoundError(Exception):
     pass
 
 
+def formatted_text_from_str(text: str) -> FormattedText:
+    """
+    Creates FormattedText from a string containing HTML tags
+    """
+    return to_formatted_text(HTML(text))
+
+
+def get_toolbar_text():
+    text = get_app().current_buffer.text
+    if VALUE_SEP not in text:
+        return HTML(f"<b>Hint</b>: Use '<i>{VALUE_SEP}</i>' to input multiple values")
+    else:
+        values = text.split(VALUE_SEP)
+        values_escaped = [v.replace(r"\/", "/") for v in values]
+        return formatted_text_from_str(
+            f"<b>Values</b>: <u>{'</u>, <u>'.join(values_escaped)}</u>"
+        )
+
+
 def _validate_non_empty(text: str):
     if not text:
         raise ValidationError(message="Input must not be empty", cursor_position=0)
@@ -24,13 +50,40 @@ def _validate_non_empty(text: str):
 
 class NonEmptyValidator(Validator):
     def validate(self, document):
-        text = document.text
+        text: str = document.text
         _validate_non_empty(text)
+
+
+class ListValidator(Validator):
+    def validate(self, document):
+        text: str = document.text
+        _validate_non_empty(text)
+        if VALUE_SEP in text:
+            values = text.split(VALUE_SEP)
+            position = 0
+            for i, value in enumerate(values):
+                if not value:
+                    raise ValidationError(
+                        message=f"Value {i+1} is invalid",
+                        cursor_position=position,
+                    )
+                position += len(value) + 2
+
+            if text.endswith(VALUE_SEP):
+                raise ValidationError(
+                    message=f"Append another value or escape trailing '{VALUE_SEP}'",
+                    cursor_position=(len(text) + 1),
+                )
+            if text.startswith(VALUE_SEP):
+                raise ValidationError(
+                    message=f"Prepend another value or escape leading '{VALUE_SEP}'",
+                    cursor_position=0,
+                )
 
 
 class YesNoValidator(Validator):
     def validate(self, document):
-        text = document.text
+        text: str = document.text
         _validate_non_empty(text)
 
         if text.lower() not in ["y", "n"]:
@@ -41,7 +94,7 @@ class YesNoValidator(Validator):
 
 class NumberValidator(Validator):
     def validate(self, document):
-        text = document.text
+        text: str = document.text
         _validate_non_empty(text)
 
         if text and not text.isdigit():
@@ -103,13 +156,6 @@ def list_files(directory: Path) -> list[Path]:
 
     children = [child for child in directory.iterdir() if child.is_file()]
     return children
-
-
-def formatted_text_from_str(text: str) -> FormattedText:
-    """
-    Creates FormattedText from a string containing HTML tags
-    """
-    return to_formatted_text(HTML(text))
 
 
 def print_to_console(text: str | HTML) -> None:
