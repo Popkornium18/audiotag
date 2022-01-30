@@ -37,7 +37,7 @@ def interactive_mode(files: list[str]) -> int:
     tags: dict[Tag, list[str]] = {
         Tag.ARTIST: list({t.artist[0] for t in tracklist}),
         Tag.ALBUM: list({t.album for t in tracklist}),
-        Tag.GENRE: list({t.genre for t in tracklist}),
+        Tag.GENRE: list({t.genre[0] for t in tracklist}),
         Tag.DATE: list({"" if t.date == 0 else str(t.date) for t in tracklist}),
     }
     defaults: dict[Tag, str] = {
@@ -91,10 +91,10 @@ def interactive_mode(files: list[str]) -> int:
                 validator=NonEmptyValidator(),
             )
             track.artist = artist  # type: ignore
+            track.genre = genre  # type: ignore
             track.title = title
             track.album = album
             track.date = date
-            track.genre = genre
             track.tracknumber = tracknumber
             track.discnumber = discnumber
             track.tracktotal = tracktotal

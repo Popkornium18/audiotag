@@ -104,8 +104,9 @@ def test_encoder(audio_file: Track):
 def test_default_tags(audio_file: Track):
     audio_file.clear_tags(keep=set())
     audio_file.close()
+    assert audio_file.artist == [""]
+    assert audio_file.genre == [""]
     assert audio_file.album == ""
-    assert audio_file.genre == ""
     assert audio_file.date == 0
     assert audio_file.title == ""
     assert audio_file.encoder == ""
@@ -119,11 +120,9 @@ def test_default_tags(audio_file: Track):
 def test_trivial_tags(audio_file: Track):
     audio_file.clear_tags()
     audio_file.album = FakeTag.ALBUM.value
-    audio_file.genre = FakeTag.GENRE.value
     audio_file.date = FakeTag.DATE.value
     audio_file.title = FakeTag.TITLE.value
     assert audio_file.album == FakeTag.ALBUM.value
-    assert audio_file.genre == FakeTag.GENRE.value
     assert audio_file.date == FakeTag.DATE.value
     assert audio_file.title == FakeTag.TITLE.value
     audio_file.close()
@@ -144,6 +143,24 @@ def test_trivial_tags(audio_file: Track):
 def test_artist(audio_file: Track, artist: str | list[str], expected: list[str]):
     audio_file.artist = artist  # type: ignore
     assert audio_file.artist == expected
+    audio_file.close()
+
+
+@pytest.mark.parametrize(
+    "genre,expected",
+    [
+        (FakeTag.GENRE.value, [FakeTag.GENRE.value]),
+        ([FakeTag.GENRE.value], [FakeTag.GENRE.value]),
+        (
+            [FakeTag.GENRE.value, FakeTag.GENRE.value],
+            [FakeTag.GENRE.value, FakeTag.GENRE.value],
+        ),
+    ],
+)
+@pytest.mark.usefixtures("audio_file")
+def test_genre(audio_file: Track, genre: str | list[str], expected: list[str]):
+    audio_file.genre = genre  # type: ignore
+    assert audio_file.genre == expected
     audio_file.close()
 
 

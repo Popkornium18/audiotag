@@ -66,11 +66,13 @@ class Track:
         return artist if artist else [""]
 
     @artist.setter
-    def artist(self, artist: list[str] | str) -> None:  # type: ignore
+    def artist(self, artist: list[str] | str) -> None:
         if isinstance(artist, str):
             self._file.tags[Tag.ARTIST.value] = [artist]
-        else:
+        elif isinstance(artist, list):
             self._file.tags[Tag.ARTIST.value] = artist
+        else:
+            raise ValueError(f"Expected str or list(str), got {type(artist)}")
 
     @property
     def date(self) -> int:
@@ -82,13 +84,18 @@ class Track:
         self._file.tags[Tag.DATE.value] = [str(date)]
 
     @property
-    def genre(self) -> str:
+    def genre(self) -> list[str]:
         genre = self._get_tag(Tag.GENRE)
-        return genre[0] if genre else ""
+        return genre if genre else [""]
 
     @genre.setter
-    def genre(self, genre: str) -> None:
-        self._file.tags[Tag.GENRE.value] = [genre]
+    def genre(self, genre: str | list[str]) -> None:
+        if isinstance(genre, str):
+            self._file.tags[Tag.GENRE.value] = [genre]
+        elif isinstance(genre, list):
+            self._file.tags[Tag.GENRE.value] = genre
+        else:
+            raise ValueError(f"Expected str or list(str), got {type(genre)}")
 
     @property
     def album(self) -> str:
@@ -243,7 +250,7 @@ class Track:
                 "T": replace_forbidden(self.title),
                 "L": replace_forbidden(self.album),
                 "Y": str(self.date),
-                "G": replace_forbidden(self.genre),
+                "G": replace_forbidden("-".join(self.genre)),
                 "N": pad(number=self.tracknumber, total=self.tracktotal),
                 "D": pad(number=self.discnumber, total=self.disctotal),
                 "NO": str(self.tracktotal),
