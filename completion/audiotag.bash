@@ -8,6 +8,7 @@ _audiotag_completions()
 	local commands=(print interactive set clean copy rename -v -h --version --help)
 	local rename_commands=(--pattern= --force -f)
 	local clean_commands=(--keep= -k)
+	local interactive_commands=(--compilation -c)
 	local set_commands=(--noartist --notitle --noalbum --nodate --nogenre\
 		--notracknumber --notracktotal --nodiscnumber --nodisctotal\
 		--artist= --title= --album= --date= --genre= --tracknumber=\
@@ -17,7 +18,7 @@ _audiotag_completions()
 		COMPREPLY=($(compgen -W "${commands[*]}" -- ${cur}))
 	else
 		case ${lastcommand} in
-			print|interactive)
+			print)
 				compopt -o default
 				COMPREPLY=()
 				;;
@@ -31,6 +32,14 @@ _audiotag_completions()
 						compopt -o nospace
 					fi
 					COMPREPLY=($(compgen -W "${clean_commands[*]}" -- ${cur}))
+				else
+					compopt -o default
+					COMPREPLY=()
+				fi
+				;;
+      interactive)
+				if [[ ${cur} == -* ]]; then
+					COMPREPLY=($(compgen -W "${interactive_commands[*]}" -- ${cur}))
 				else
 					compopt -o default
 					COMPREPLY=()
