@@ -88,6 +88,8 @@ Title 1: At Giza
 Title 2: Flight of the Eagle
 ```
 
+If you pass the `--compilation` flag, audiotag will ask the artist of each track.
+
 ### Set
 
 If you want to set the tags in a non-interactive way you can use the `set` command.
