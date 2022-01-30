@@ -6,7 +6,6 @@ from audiotag.track import Track, Tag
 from audiotag.modes import (
     clean_mode,
     copy_mode,
-    interactive_mode,
     print_mode,
     rename_mode,
     set_mode,
@@ -19,14 +18,13 @@ from conftest import FakeTag
     [["lel"], ["lol", "lul"]],
 )
 @pytest.mark.usefixtures("audio_file")
-@pytest.mark.skip
 def test_print_mode(audio_file: Track, artists: list[str], capfd):
     audio_file.artist = artists
     audio_file.save()
     audio_file.close()
     expected = f"""Filename: {str(audio_file.path)}
 {Tag.ALBUM.name}: {FakeTag.ALBUM.value}
-{Tag.ARTIST.name}: {artists[0] if len(artists) == 1 else artists}
+{Tag.ARTIST.name}: {artists[0] if len(artists) == 1 else ", ".join(artists)}
 {Tag.DATE.name}: {str(FakeTag.DATE.value)}
 {Tag.DISCNUMBER.name}: {str(FakeTag.DISCNUMBER.value)}
 {Tag.DISCTOTAL.name}: {str(FakeTag.DISCTOTAL.value)}
@@ -138,11 +136,8 @@ def test_rename_mode(
     assert new_file.name == expected + audio_file.path.suffix
 
 
-@pytest.mark.parametrize("force", [True, False])
 @pytest.mark.usefixtures("audio_file")
-def test_rename_mode_existing(
-    audio_file: Track, monkeypatch: pytest.MonkeyPatch, force: bool
-):
+def test_rename_mode_existing(audio_file: Track):
     audio_file.close()
     copy = audio_file.path.parent / (FakeTag.TITLE.value + audio_file.path.suffix)
     shutil.copyfile(audio_file.path, copy)
@@ -150,47 +145,12 @@ def test_rename_mode_existing(
     copytrack_before.clear_tags()
     copytrack_before.save()
     copytrack_before.close()
-    monkeypatch.setattr("builtins.input", lambda _: "y" if force else "n")
-    error_code = rename_mode(files=[str(audio_file.path)], pattern="{T}", force=force)
+    error_code = rename_mode(files=[str(audio_file.path)], pattern="{T}", force=True)
     assert not error_code
     copytrack_after = Track(copy)
     assert copytrack_after
-    if force:
-        assert copytrack_after.title == FakeTag.TITLE.value
-    else:
-        assert not copytrack_after.title
+    assert copytrack_after.title == FakeTag.TITLE.value
     copytrack_after.close()
-
-
-@pytest.mark.usefixtures("audio_file")
-def test_interactive_mode(audio_file: Track, monkeypatch: pytest.MonkeyPatch):
-    audio_file.clear_tags(keep=set())
-    audio_file.save()
-    audio_file.close()
-
-    answers = [
-        FakeTag.ARTIST.value,
-        FakeTag.ALBUM.value,
-        FakeTag.GENRE.value,
-        str(FakeTag.DATE.value),
-        FakeTag.TITLE.value,
-    ]
-    monkeypatch.setattr("builtins.input", lambda _: answers.pop(0))
-
-    error_code = interactive_mode([str(audio_file.path)])
-    assert not error_code
-    audio_file_after = Track(audio_file.path)
-    assert audio_file_after
-    assert audio_file_after.artist == [FakeTag.ARTIST.value]
-    assert audio_file_after.album == FakeTag.ALBUM.value
-    assert audio_file_after.genre == FakeTag.GENRE.value
-    assert audio_file_after.date == FakeTag.DATE.value
-    assert audio_file_after.title == FakeTag.TITLE.value
-    assert audio_file_after.tracknumber == FakeTag.TRACKNUMBER.value
-    assert audio_file_after.tracktotal == FakeTag.TRACKTOTAL.value
-    assert audio_file_after.discnumber == FakeTag.DISCNUMBER.value
-    assert audio_file_after.disctotal == FakeTag.DISCTOTAL.value
-    audio_file_after.close()
 
 
 @pytest.mark.usefixtures("audio_file")
