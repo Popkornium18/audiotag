@@ -163,6 +163,13 @@ Defaults to '{N} - {T}' or '{D}-{N} - {T}' (if {D} > 1)""",
         "DESTFOLDER", action="store", help="Save tags to files in this directory"
     )
 
+    interactive_parser.add_argument(
+        "-c",
+        "--compilation",
+        action="store_true",
+        help="Set a different artist for each track",
+    )
+
     for subparser in {
         clean_parser,
         interactive_parser,
@@ -194,7 +201,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             keep=None if not args["keep"] else {Tag(tag) for tag in args["keep"]},
         )
     elif command == Mode.INTERACTIVE.value:
-        return interactive_mode(args["FILE"])
+        return interactive_mode(files=args["FILE"], compilation=args["compilation"])
     elif command == Mode.RENAME.value:
         return rename_mode(
             files=args["FILE"], pattern=args["pattern"], force=args["force"]

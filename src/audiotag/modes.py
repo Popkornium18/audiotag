@@ -4,6 +4,7 @@ import sys
 from typing import TYPE_CHECKING
 import os
 from prompt_toolkit import prompt
+from prompt_toolkit.formatted_text.html import HTML
 from audiotag import styles
 from audiotag.track import Track, Tag
 from audiotag.util import (
@@ -23,6 +24,7 @@ from audiotag.util import (
 
 if TYPE_CHECKING:
     from typing import Optional
+    from prompt_toolkit.formatted_text.base import FormattedText
 
 
 def print_mode(files: list[str]) -> int:
@@ -34,7 +36,7 @@ def print_mode(files: list[str]) -> int:
     return 0
 
 
-def interactive_mode(files: list[str]) -> int:
+def interactive_mode(files: list[str], compilation: bool) -> int:
     tracklist: list[Track] = open_tracks(strings_to_paths(files))
 
     tags: dict[Tag, list[str]] = {
@@ -47,15 +49,19 @@ def interactive_mode(files: list[str]) -> int:
         tag: "" if len(value) > 1 else value[0] for tag, value in tags.items()
     }
 
-    artist_raw = prompt(
-        message=formatted_text_from_str("<tag>Artist</tag>: "),
-        default=defaults[Tag.ARTIST],
-        style=styles.style_track,
-        bottom_toolbar=get_toolbar_text,
-        validator=ListValidator(),
-    )
-    artist_list = artist_raw.split(VALUE_SEP)
-    artist_tag = [v.replace(r"\/", "/") for v in artist_list]
+    def _ask_artist(message: FormattedText):
+        artist_raw = prompt(
+            message=message,
+            default=defaults[Tag.ARTIST],
+            style=styles.style_track,
+            bottom_toolbar=get_toolbar_text,
+            validator=ListValidator(),
+        )
+        artist_list = artist_raw.split(VALUE_SEP)
+        return [v.replace(r"\/", "/") for v in artist_list]
+
+    if not compilation:
+        artist_tag = _ask_artist(message=formatted_text_from_str("<tag>Artist</tag>: "))
 
     album = prompt(
         message=formatted_text_from_str("<tag>Albumtitle</tag>: "),
@@ -92,12 +98,28 @@ def interactive_mode(files: list[str]) -> int:
     for discnumber, disc in enumerate(discs, start=1):
         tracktotal = len(disc)
         for tracknumber, track in enumerate(disc, start=1):
-            print(track.path.name)
-            prefix = f"Disc {discnumber}, "
+            msg_filename: str | HTML = (
+                HTML(f"<b>File</b>: <i>{track.path.name}</i>")
+                if sys.stdout.isatty()
+                else f"File: {track.path.name}"
+            )
+            print_to_console(text=msg_filename)
+            prefix = f"Disc {discnumber}, " if disctotal > 1 else ""
+            if compilation:
+                msg_artist = (
+                    "<tag>" + f"{prefix}" + f"Track {tracknumber}" + " - Artist</tag>: "
+                )
+                artist_tag = _ask_artist(message=formatted_text_from_str(msg_artist))
+
+            msg_title = (
+                "<tag>"
+                + f"{prefix}"
+                + f"Track {tracknumber}"
+                + (" - Title" if compilation else "")
+                + "</tag>: "
+            )
             title = prompt(
-                message=formatted_text_from_str(
-                    f"<tag>{prefix if disctotal > 1 else ''}Track {tracknumber}</tag>: "
-                ),
+                message=formatted_text_from_str(msg_title),
                 default=track.title,
                 style=styles.style_track,
                 validator=NonEmptyValidator(),
