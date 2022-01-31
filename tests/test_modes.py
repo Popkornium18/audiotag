@@ -29,7 +29,7 @@ def test_print_mode(audio_file: Track, artists: list[str], capfd):
 {Tag.DISCNUMBER.name}: {str(FakeTag.DISCNUMBER.value)}
 {Tag.DISCTOTAL.name}: {str(FakeTag.DISCTOTAL.value)}
 {Tag.ENCODER.name}: {FakeTag.ENCODER.value}
-{Tag.GENRE.name}: {FakeTag.GENRE.value}
+{Tag.GENRE.name}: {FakeTag.GENRE.value[0]}
 {Tag.TITLE.name}: {FakeTag.TITLE.value}
 {Tag.TRACKNUMBER.name}: {str(FakeTag.TRACKNUMBER.value)}
 {Tag.TRACKTOTAL.name}: {str(FakeTag.TRACKTOTAL.value)}

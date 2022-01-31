@@ -16,9 +16,9 @@ class Files(Enum):
 class FakeTag(Enum):
     """Enum for fake tag values used in testing"""
 
-    ARTIST = "artist"
+    ARTIST = ["artist"]
     ALBUM = "album"
-    GENRE = "genre"
+    GENRE = ["genre"]
     DATE = 2000
     TITLE = "title"
     ENCODER = "Lavc58.134.100 libopus"
