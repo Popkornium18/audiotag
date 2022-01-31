@@ -142,11 +142,13 @@ def test_default_tags(audio_file: Track):
 def test_trivial_tags(audio_file: Track):
     audio_file.clear_tags()
     audio_file.artist = FakeTag.ARTIST.value
+    audio_file.album_artist = FakeTag.ALBUMARTIST.value
     audio_file.genre = FakeTag.GENRE.value
     audio_file.album = FakeTag.ALBUM.value
     audio_file.date = FakeTag.DATE.value
     audio_file.title = FakeTag.TITLE.value
     assert audio_file.artist == FakeTag.ARTIST.value
+    assert audio_file.album_artist == FakeTag.ALBUMARTIST.value
     assert audio_file.genre == FakeTag.GENRE.value
     assert audio_file.album == FakeTag.ALBUM.value
     assert audio_file.date == FakeTag.DATE.value

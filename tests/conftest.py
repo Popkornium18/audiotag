@@ -17,6 +17,7 @@ class FakeTag(Enum):
     """Enum for fake tag values used in testing"""
 
     ARTIST = ["artist"]
+    ALBUMARTIST = "artist"
     ALBUM = "album"
     GENRE = ["genre"]
     DATE = 2000
@@ -60,7 +61,8 @@ def fixture_audio_file(tmp_path: Path) -> Track:
     shutil.copyfile(src=opus_file, dst=copy)
     track = Track(copy)
     track.clear_tags()
-    track.artist = FakeTag.ARTIST.value  # type: ignore
+    track.artist = FakeTag.ARTIST.value
+    track.album_artist = FakeTag.ALBUMARTIST.value
     track.album = FakeTag.ALBUM.value
     track.genre = FakeTag.GENRE.value
     track.title = FakeTag.TITLE.value

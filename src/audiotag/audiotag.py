@@ -99,6 +99,7 @@ def make_parser() -> argparse.ArgumentParser:
 
     for tag in [
         Tag.ARTIST,
+        Tag.ALBUMARTIST,
         Tag.TITLE,
         Tag.ALBUM,
         Tag.GENRE,

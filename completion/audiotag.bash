@@ -9,9 +9,9 @@ _audiotag_completions()
 	local rename_commands=(--pattern= --force -f)
 	local clean_commands=(--keep= -k)
 	local interactive_commands=(--compilation -c)
-	local set_commands=(--noartist --notitle --noalbum --nodate --nogenre\
-		--notracknumber --notracktotal --nodiscnumber --nodisctotal\
-		--artist= --title= --album= --date= --genre= --tracknumber=\
+	local set_commands=(--noartist --noalbumartist --notitle --noalbum --nodate\
+		--nogenre --notracknumber --notracktotal --nodiscnumber --nodisctotal\
+		--artist= --albumartist= --title= --album= --date= --genre= --tracknumber=\
 		--tracktotal= --discnumber= --disctotal=)
 
 	if [[ ${COMP_CWORD} == 1 ]]; then
