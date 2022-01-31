@@ -10,6 +10,17 @@ from prompt_toolkit.formatted_text import HTML
 if TYPE_CHECKING:
     from typing import Optional, Any
 
+VALUE_SEP = "//"
+
+
+class TagListInvalidException(Exception):
+    def __init__(self, index: int, input: str):
+        self.index = index
+        self.input = input
+
+    def __str__(self):
+        return f"Value {self.index+1} in '{self.input}' is invalid"
+
 
 class Tag(Enum):
     """Enum with common tag strings"""
@@ -55,6 +66,17 @@ class Track:
     def __repr__(self) -> str:
         return f"Track('{str(self.path)}')"
 
+    @staticmethod
+    def split_tag(input_text: str) -> list[Any]:
+        """Splits a string that contains a separator into a list"""
+        input_list = input_text.split(VALUE_SEP)
+        input_split = [v.replace(r"\/", "/") for v in input_list]
+
+        for i, value in enumerate(input_split):
+            if not value:
+                raise TagListInvalidException(index=i, input=input_text)
+        return input_split
+
     @property
     def encoder(self) -> str:
         encoder = self._get_tag(Tag.ENCODER)
@@ -66,11 +88,8 @@ class Track:
         return artist if artist else [""]
 
     @artist.setter
-    def artist(self, artist: list[str] | str) -> None:  # type: ignore
-        if isinstance(artist, str):
-            self._file.tags[Tag.ARTIST.value] = [artist]
-        else:
-            self._file.tags[Tag.ARTIST.value] = artist
+    def artist(self, artist: list[str]) -> None:
+        self._file.tags[Tag.ARTIST.value] = artist
 
     @property
     def date(self) -> int:
@@ -82,13 +101,13 @@ class Track:
         self._file.tags[Tag.DATE.value] = [str(date)]
 
     @property
-    def genre(self) -> str:
+    def genre(self) -> list[str]:
         genre = self._get_tag(Tag.GENRE)
-        return genre[0] if genre else ""
+        return genre if genre else [""]
 
     @genre.setter
-    def genre(self, genre: str) -> None:
-        self._file.tags[Tag.GENRE.value] = [genre]
+    def genre(self, genre: list[str]) -> None:
+        self._file.tags[Tag.GENRE.value] = genre
 
     @property
     def album(self) -> str:
@@ -194,7 +213,12 @@ class Track:
         """Format tags as a HTML string. The content is the same as Track.tags_string()"""
         string = f"<tag>Filename</tag>: <path>{str(self.path)}</path>\n"
         for tag, value in self._file.tags.items():
-            string += f"<tag>{tag}</tag>: {', '.join([f'<value>{v}</value>' for v in value])}\n"
+            value_format = (
+                ", ".join([f"<valuemultiple>{v}</valuemultiple>" for v in value])
+                if len(value) > 1
+                else value[0]
+            )
+            string += f"<tag>{tag}</tag>: {value_format}\n"
         return HTML(string)
 
     def format_tags(self, as_html: bool) -> str | HTML:
@@ -243,7 +267,7 @@ class Track:
                 "T": replace_forbidden(self.title),
                 "L": replace_forbidden(self.album),
                 "Y": str(self.date),
-                "G": replace_forbidden(self.genre),
+                "G": replace_forbidden("-".join(self.genre)),
                 "N": pad(number=self.tracknumber, total=self.tracktotal),
                 "D": pad(number=self.discnumber, total=self.disctotal),
                 "NO": str(self.tracktotal),
@@ -258,8 +282,13 @@ class Track:
         """Set the new tags from the given dictionary and return if the tags have changed"""
         old_tags = self._file.tags.copy()
         for tag, value in tags.items():
-            value_str = str(value) if isinstance(value, int) else value
-            self._file.tags[tag.value] = [value_str]
+            if isinstance(value, int):
+                self._file.tags[tag.value] = [str(value)]
+            elif tag in [Tag.ARTIST, Tag.GENRE]:
+                value_list: list[str] = Track.split_tag(value)
+                self._file.tags[tag.value] = value_list
+            else:
+                self._file.tags[tag.value] = [value]
         return not self._file.tags == old_tags
 
     def remove_tags(self, tags: set[Tag]) -> bool | Any:

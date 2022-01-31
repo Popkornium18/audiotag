@@ -4,13 +4,16 @@ import sys
 from typing import TYPE_CHECKING
 import os
 from prompt_toolkit import prompt
+from prompt_toolkit.formatted_text.html import HTML
 from audiotag import styles
-from audiotag.track import Track, Tag
+from audiotag.track import TagListInvalidException, Track, Tag, VALUE_SEP
 from audiotag.util import (
+    ListValidator,
     NoSuchDirectoryError,
     NonEmptyValidator,
     NumberValidator,
     formatted_text_from_str,
+    get_toolbar_text,
     yes_no,
     open_tracks,
     list_files,
@@ -20,6 +23,7 @@ from audiotag.util import (
 
 if TYPE_CHECKING:
     from typing import Optional
+    from prompt_toolkit.formatted_text.base import FormattedText
 
 
 def print_mode(files: list[str]) -> int:
@@ -31,37 +35,51 @@ def print_mode(files: list[str]) -> int:
     return 0
 
 
-def interactive_mode(files: list[str]) -> int:
+def interactive_mode(files: list[str], compilation: bool) -> int:
     tracklist: list[Track] = open_tracks(strings_to_paths(files))
 
     tags: dict[Tag, list[str]] = {
-        Tag.ARTIST: list({t.artist[0] for t in tracklist}),
+        Tag.ARTIST: list({VALUE_SEP.join(t.artist) for t in tracklist}),
         Tag.ALBUM: list({t.album for t in tracklist}),
-        Tag.GENRE: list({t.genre for t in tracklist}),
+        Tag.GENRE: list({VALUE_SEP.join(t.genre) for t in tracklist}),
         Tag.DATE: list({"" if t.date == 0 else str(t.date) for t in tracklist}),
     }
     defaults: dict[Tag, str] = {
         tag: "" if len(value) > 1 else value[0] for tag, value in tags.items()
     }
 
-    artist = prompt(
-        message=formatted_text_from_str("<tag>Artist</tag>: "),
-        default=defaults[Tag.ARTIST],
-        style=styles.style_track,
-        validator=NonEmptyValidator(),
-    )
+    def _ask_artist(message: FormattedText) -> str:
+        return prompt(
+            message=message,
+            default=defaults[Tag.ARTIST],
+            style=styles.style_track,
+            bottom_toolbar=get_toolbar_text,
+            validator=ListValidator(),
+        )
+
+    artist: list[str] = []
+    if not compilation:
+        artist_multiple = _ask_artist(
+            message=formatted_text_from_str("<tag>Artist</tag>: ")
+        )
+        artist = Track.split_tag(artist_multiple)
+
     album = prompt(
         message=formatted_text_from_str("<tag>Albumtitle</tag>: "),
         default=defaults[Tag.ALBUM],
         style=styles.style_track,
         validator=NonEmptyValidator(),
     )
-    genre = prompt(
+
+    genre_multiple = prompt(
         message=formatted_text_from_str("<tag>Genre</tag>: "),
         default=defaults[Tag.GENRE],
         style=styles.style_track,
-        validator=NonEmptyValidator(),
+        bottom_toolbar=get_toolbar_text,
+        validator=ListValidator(),
     )
+    genre: list[str] = Track.split_tag(genre_multiple)
+
     date = int(
         prompt(
             message=formatted_text_from_str("<tag>Date</tag>: "),
@@ -80,21 +98,40 @@ def interactive_mode(files: list[str]) -> int:
     for discnumber, disc in enumerate(discs, start=1):
         tracktotal = len(disc)
         for tracknumber, track in enumerate(disc, start=1):
-            print(track.path.name)
-            prefix = f"Disc {discnumber}, "
+            msg_filename: str | HTML = (
+                HTML(f"<b>File</b>: <i>{track.path.name}</i>")
+                if sys.stdout.isatty()
+                else f"File: {track.path.name}"
+            )
+            print_to_console(text=msg_filename)
+            prefix = f"Disc {discnumber}, " if disctotal > 1 else ""
+            if compilation:
+                msg_artist = (
+                    "<tag>" + f"{prefix}" + f"Track {tracknumber}" + " - Artist</tag>: "
+                )
+                artist_multiple = _ask_artist(
+                    message=formatted_text_from_str(msg_artist)
+                )
+                artist = Track.split_tag(artist_multiple)
+
+            msg_title = (
+                "<tag>"
+                + f"{prefix}"
+                + f"Track {tracknumber}"
+                + (" - Title" if compilation else "")
+                + "</tag>: "
+            )
             title = prompt(
-                message=formatted_text_from_str(
-                    f"<tag>{prefix if disctotal > 1 else ''}Track {tracknumber}</tag>: "
-                ),
+                message=formatted_text_from_str(msg_title),
                 default=track.title,
                 style=styles.style_track,
                 validator=NonEmptyValidator(),
             )
-            track.artist = artist  # type: ignore
+            track.artist = artist
+            track.genre = genre
             track.title = title
             track.album = album
             track.date = date
-            track.genre = genre
             track.tracknumber = tracknumber
             track.discnumber = discnumber
             track.tracktotal = tracktotal
@@ -112,7 +149,11 @@ def set_mode(
 ) -> int:
     tracklist = open_tracks(strings_to_paths(files))
     for track in tracklist:
-        set_modified = track.set_tags(set_tags)
+        try:
+            set_modified = track.set_tags(set_tags)
+        except TagListInvalidException as e:
+            print(e)
+            return 1
         del_modified = track.remove_tags(remove_tags)
         if set_modified or del_modified:
             track.save()

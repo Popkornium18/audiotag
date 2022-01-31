@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import shutil
 from conftest import FakeTag
-from audiotag.track import Track, Tag, Pattern
+from audiotag.track import TagListInvalidException, Track, Tag, Pattern
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -42,6 +42,28 @@ def test_sorting(audio_file: Track):
 def test_repr(audio_file: Track):
     audio_file.close()
     str(audio_file) == f"Track('{str(audio_file.path)}')"
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        ("a", ["a"]),
+        ("a//b//c", ["a", "b", "c"]),
+        (r"a//b\/\/c//d", ["a", "b//c", "d"]),
+        (r"a//b\/\/c///d", ["a", "b//c", "/d"]),
+    ],
+)
+def test_split_tag(input: str, expected: list[str]):
+    assert Track.split_tag(input) == expected
+
+
+@pytest.mark.parametrize(
+    "input",
+    ["//" "//a" "a//", "a//b////c"],
+)
+def test_split_tag_invalid(input: str):
+    with pytest.raises(TagListInvalidException):
+        Track.split_tag(input)
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -104,8 +126,9 @@ def test_encoder(audio_file: Track):
 def test_default_tags(audio_file: Track):
     audio_file.clear_tags(keep=set())
     audio_file.close()
+    assert audio_file.artist == [""]
+    assert audio_file.genre == [""]
     assert audio_file.album == ""
-    assert audio_file.genre == ""
     assert audio_file.date == 0
     assert audio_file.title == ""
     assert audio_file.encoder == ""
@@ -118,32 +141,16 @@ def test_default_tags(audio_file: Track):
 @pytest.mark.usefixtures("audio_file")
 def test_trivial_tags(audio_file: Track):
     audio_file.clear_tags()
-    audio_file.album = FakeTag.ALBUM.value
+    audio_file.artist = FakeTag.ARTIST.value
     audio_file.genre = FakeTag.GENRE.value
+    audio_file.album = FakeTag.ALBUM.value
     audio_file.date = FakeTag.DATE.value
     audio_file.title = FakeTag.TITLE.value
-    assert audio_file.album == FakeTag.ALBUM.value
+    assert audio_file.artist == FakeTag.ARTIST.value
     assert audio_file.genre == FakeTag.GENRE.value
+    assert audio_file.album == FakeTag.ALBUM.value
     assert audio_file.date == FakeTag.DATE.value
     assert audio_file.title == FakeTag.TITLE.value
-    audio_file.close()
-
-
-@pytest.mark.parametrize(
-    "artist,expected",
-    [
-        (FakeTag.ARTIST.value, [FakeTag.ARTIST.value]),
-        ([FakeTag.ARTIST.value], [FakeTag.ARTIST.value]),
-        (
-            [FakeTag.ARTIST.value, FakeTag.ARTIST.value],
-            [FakeTag.ARTIST.value, FakeTag.ARTIST.value],
-        ),
-    ],
-)
-@pytest.mark.usefixtures("audio_file")
-def test_artist(audio_file: Track, artist: str | list[str], expected: list[str]):
-    audio_file.artist = artist  # type: ignore
-    assert audio_file.artist == expected
     audio_file.close()
 
 
@@ -207,22 +214,22 @@ def test_format_missing_tags(audio_file: Track):
     [
         (
             Pattern.SINGLE_DISC.value,
-            [FakeTag.ARTIST.value],
+            FakeTag.ARTIST.value,
             1,
             1,
             1,
             f"1 - {FakeTag.TITLE.value}",
         ),
-        ("", [FakeTag.ARTIST.value], 1, 1, 1, f"1 - {FakeTag.TITLE.value}"),
+        ("", FakeTag.ARTIST.value, 1, 1, 1, f"1 - {FakeTag.TITLE.value}"),
         (
             Pattern.MULTI_DISC.value,
-            [FakeTag.ARTIST.value],
+            FakeTag.ARTIST.value,
             10,
             2,
             15,
             f"02-01 - {FakeTag.TITLE.value}",
         ),
-        ("", [FakeTag.ARTIST.value], 10, 2, 15, f"02-01 - {FakeTag.TITLE.value}"),
+        ("", FakeTag.ARTIST.value, 10, 2, 15, f"02-01 - {FakeTag.TITLE.value}"),
         ("{N} - {A}", ["Some/Track"], 1, 1, 1, "1 - Some-Track"),
     ],
 )
