@@ -172,6 +172,7 @@ If the new filename already exists Audiotag will ask if you want to overwrite th
 ### Copy
 The `copy` subcommand copies the tags from all the files in the sourcefolder to corresponding files in the destination folder.
 The filenames are sorted alphabetically before they are matched.
+You may also specify a _single_ file as source and destination.
 Note that the `ENCODER` tag ist _not_ copied.
 
 ## Dependencies
