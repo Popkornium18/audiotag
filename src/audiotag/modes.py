@@ -48,10 +48,10 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
         tag: "" if len(value) > 1 else value[0] for tag, value in tags.items()
     }
 
-    def _ask_artist(message: FormattedText) -> str:
+    def _ask_artist(message: FormattedText, default: str) -> str:
         return prompt(
             message=message,
-            default=defaults[Tag.ARTIST],
+            default=default,
             style=styles.style_track,
             bottom_toolbar=get_toolbar_text,
             validator=ListValidator(),
@@ -60,7 +60,8 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
     artist: list[str] = []
     if not compilation:
         artist_multiple = _ask_artist(
-            message=formatted_text_from_str("<tag>Artist</tag>: ")
+            message=formatted_text_from_str("<tag>Artist</tag>: "),
+            default=defaults[Tag.ARTIST],
         )
         artist = Track.split_tag(artist_multiple)
 
@@ -110,7 +111,8 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
                     "<tag>" + f"{prefix}" + f"Track {tracknumber}" + " - Artist</tag>: "
                 )
                 artist_multiple = _ask_artist(
-                    message=formatted_text_from_str(msg_artist)
+                    message=formatted_text_from_str(msg_artist),
+                    default=VALUE_SEP.join(track.artist),
                 )
                 artist = Track.split_tag(artist_multiple)
 
