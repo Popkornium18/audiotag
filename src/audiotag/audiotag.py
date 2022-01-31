@@ -156,12 +156,12 @@ Defaults to '{N} - {T}' or '{D}-{N} - {T}' (if {D} > 1)""",
     )
 
     copy_parser.add_argument(
-        "SOURCEFOLDER",
+        "SOURCE",
         action="store",
-        help="Read tags from files in this directory",
+        help="Read tags from this file or files in this directory",
     )
     copy_parser.add_argument(
-        "DESTFOLDER", action="store", help="Save tags to files in this directory"
+        "DEST", action="store", help="Save tags to this file or files in this directory"
     )
 
     interactive_parser.add_argument(
@@ -208,7 +208,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             files=args["FILE"], pattern=args["pattern"], force=args["force"]
         )
     elif command == Mode.COPY.value:
-        return copy_mode(source=args["SOURCEFOLDER"], dest=args["DESTFOLDER"])
+        return copy_mode(src=args["SOURCE"], dst=args["DEST"])
     return 1
 
 

@@ -188,23 +188,42 @@ def clean_mode(files: list[str], keep: Optional[set[Tag]]) -> int:
     return 0
 
 
-def copy_mode(source: str, dest: str) -> int:
-    try:
-        srcfiles = sorted(open_tracks(list_files(Path(source))))
-        dstfiles = sorted(open_tracks(list_files(Path(dest))))
-    except NoSuchDirectoryError as err:
-        print(err)
-        return 1
+def copy_mode(src: str, dst: str) -> int:
+    src_path = Path(src)
+    dst_path = Path(dst)
 
-    if len(srcfiles) != len(dstfiles):
-        print("Different number of files in SOURCEFOLDER and DESTFOLDER. Exiting.")
+    if src_path.is_file() and dst_path.is_file():
+        try:
+            src_file = Track(src_path)
+            dst_file = Track(dst_path)
+        except OSError as e:
+            print(e)
+            return 1
+        dst_file.copy_tags(source=src_file)
+        dst_file.save()
+        dst_file.close()
+        src_file.close()
+        return 0
+    elif src_path.is_dir() and dst_path.is_dir():
+        try:
+            src_files = sorted(open_tracks(list_files(src_path)))
+            dst_files = sorted(open_tracks(list_files(dst_path)))
+        except NoSuchDirectoryError as err:
+            print(err)
+            return 1
+
+        if len(src_files) != len(dst_files):
+            print("Different number of files in SOURCEFOLDER and DESTFOLDER")
+            return 1
+        for src_file, dst_file in zip(src_files, dst_files):
+            dst_file.copy_tags(source=src_file)
+            dst_file.save()
+            dst_file.close()
+            src_file.close()
+        return 0
+    else:
+        print("Source and destination must either be both files or both directories")
         return 1
-    for srcfile, dstfile in zip(srcfiles, dstfiles):
-        dstfile.copy_tags(source=srcfile)
-        dstfile.save()
-        dstfile.close()
-        srcfile.close()
-    return 0
 
 
 def rename_mode(
