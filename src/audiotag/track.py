@@ -27,6 +27,7 @@ class Tag(Enum):
 
     value: str
     ALBUM = "ALBUM"
+    ALBUMARTIST = "ALBUMARTIST"
     ARTIST = "ARTIST"
     DATE = "DATE"
     DISCNUMBER = "DISCNUMBER"
@@ -90,6 +91,15 @@ class Track:
     @artist.setter
     def artist(self, artist: list[str]) -> None:
         self._file.tags[Tag.ARTIST.value] = artist
+
+    @property
+    def album_artist(self) -> str:
+        albumartist = self._get_tag(Tag.ALBUMARTIST)
+        return albumartist[0] if albumartist else ""
+
+    @album_artist.setter
+    def album_artist(self, album_artist: str) -> None:
+        self._file.tags[Tag.ALBUMARTIST.value] = [album_artist]
 
     @property
     def date(self) -> int:
