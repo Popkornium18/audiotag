@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+from pathlib import Path
 import shutil
 import pytest
 from audiotag.track import Track, Tag
@@ -64,7 +65,7 @@ def test_clean_mode(audio_file: Track):
 
 
 def test_copy_mode_dir_not_exist():
-    error_code = copy_mode(source="DoesNotExist", dest="DoesNotExistEither")
+    error_code = copy_mode(src="DoesNotExist", dst="DoesNotExistEither")
     assert error_code == 1
 
 
@@ -78,12 +79,12 @@ def test_copy_mode_too_many_files(audio_file: Track):
     shutil.copyfile(audio_file.path, src / audio_file.path.name)
     shutil.copyfile(audio_file.path, src / ("lmao" + audio_file.path.suffix))
     shutil.move(audio_file.path, dst / audio_file.path.name)
-    error_code = copy_mode(source=str(src), dest=str(dst))
+    error_code = copy_mode(src=str(src), dst=str(dst))
     assert error_code == 1
 
 
 @pytest.mark.usefixtures("audio_file")
-def test_copy_mode(audio_file: Track):
+def test_copy_mode_dirs(audio_file: Track):
     src = audio_file.path.parent / "src"
     dst = audio_file.path.parent / "dst"
     os.mkdir(src)
@@ -94,12 +95,43 @@ def test_copy_mode(audio_file: Track):
     audio_file.save()
     audio_file.close()
     shutil.move(audio_file.path, dst / audio_file.path.name)
-    error_code = copy_mode(source=str(src), dest=str(dst))
+    error_code = copy_mode(src=str(src), dst=str(dst))
     assert not error_code
     srcfile = Track(src / audio_file.path.name)
     dstfile = Track(dst / audio_file.path.name)
     assert srcfile and dstfile
     assert srcfile.album == dstfile.album
+    assert srcfile.artist == dstfile.artist
+    assert srcfile.discnumber == dstfile.discnumber
+    assert srcfile.disctotal == dstfile.disctotal
+    assert srcfile.genre == dstfile.genre
+    assert srcfile.title == dstfile.title
+    assert srcfile.tracknumber == dstfile.tracknumber
+    assert srcfile.tracktotal == dstfile.tracktotal
+    assert srcfile.encoder == FakeTag.ENCODER.value
+    assert dstfile.encoder == "lol"
+    srcfile.close()
+    dstfile.close()
+
+
+@pytest.mark.usefixtures("audio_file")
+def test_copy_mode_files(audio_file: Track):
+    src_filename = audio_file.path.parent / f"copy-{audio_file.path.name}"
+    shutil.copyfile(audio_file.path, src_filename)
+    audio_file.clear_tags(keep=set())
+    audio_file._file.tags[Tag.ENCODER.value] = ["lol"]
+    audio_file.save()
+    audio_file.close()
+    error_code = copy_mode(src=str(src_filename), dst=str(audio_file.path))
+    assert not error_code
+    srcfile = Track(Path(src_filename))
+    dstfile = Track(Path(audio_file.path))
+    import pdb
+
+    pdb.set_trace()
+    assert srcfile and dstfile
+    assert srcfile.album == dstfile.album
+    assert srcfile.album_artist == dstfile.album_artist
     assert srcfile.artist == dstfile.artist
     assert srcfile.discnumber == dstfile.discnumber
     assert srcfile.disctotal == dstfile.disctotal
