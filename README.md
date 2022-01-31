@@ -46,28 +46,28 @@ Multiple values per tag will be printed as a list.
 ```
 $ audiotag print *.flac
 Filename: /path/to/files/1 - At Giza.flac
-ALBUM: 'Conference of the Birds'
-ARTIST: 'Om'
-DATE: '2006'
-DISCNUMBER: '1'
-DISCTOTAL: '1'
-ENCODER: 'Lavf58.12.100'
-GENRE: 'Doom Metal'
-TITLE: 'At Giza'
-TRACKNUMBER: '1'
-TRACKTOTAL: '2'
+ALBUM: Conference of the Birds
+ARTIST: Om
+DATE: 2006
+DISCNUMBER: 1
+DISCTOTAL: 1
+ENCODER: Lavf58.12.100
+GENRE: Doom Metal
+TITLE: At Giza
+TRACKNUMBER: 1
+TRACKTOTAL: 2
 
 Filename: /path/to/files/2 - Flight of the Eagle.flac
-ALBUM: 'Conference of the Birds'
-ARTIST: 'Om'
-DATE: '2006'
-DISCNUMBER: '1'
-DISCTOTAL: '1'
-ENCODER: 'Lavf58.12.100'
-GENRE: 'Doom Metal'
-TITLE: 'Flight of the Eagle'
-TRACKNUMBER: '2'
-TRACKTOTAL: '2'
+ALBUM: Conference of the Birds
+ARTIST: Om
+DATE: 2006
+DISCNUMBER: 1
+DISCTOTAL: 1
+ENCODER: Lavf58.12.100
+GENRE: Doom Metal
+TITLE: Flight of the Eagle
+TRACKNUMBER: 2
+TRACKTOTAL: 2
 ```
 
 ### Interactive
@@ -104,6 +104,9 @@ You can choose from these options:
 *  `--discnumber=2`
 *  `--tracktotal=10`
 *  `--disctotal=2`
+
+Multiple artists and genres have to be separated by `//`.
+If you want to add a literal `//` you have to escape it like this `\/\/`.
 
 If you want to remove tags you can choose these options:
 
