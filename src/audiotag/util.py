@@ -8,12 +8,10 @@ from prompt_toolkit.shortcuts.prompt import prompt
 from prompt_toolkit.shortcuts.utils import print_formatted_text
 from prompt_toolkit.validation import ValidationError, Validator
 from audiotag import styles
-from audiotag.track import Track
+from audiotag.track import TagListInvalidException, Track, VALUE_SEP
 
 if TYPE_CHECKING:
     pass
-
-VALUE_SEP = "//"
 
 
 class NoSuchDirectoryError(Exception):
@@ -59,26 +57,10 @@ class ListValidator(Validator):
         text: str = document.text
         _validate_non_empty(text)
         if VALUE_SEP in text:
-            values = text.split(VALUE_SEP)
-            position = 0
-            for i, value in enumerate(values):
-                if not value:
-                    raise ValidationError(
-                        message=f"Value {i+1} is invalid",
-                        cursor_position=position,
-                    )
-                position += len(value) + 2
-
-            if text.endswith(VALUE_SEP):
-                raise ValidationError(
-                    message=f"Append another value or escape trailing '{VALUE_SEP}'",
-                    cursor_position=(len(text) + 1),
-                )
-            if text.startswith(VALUE_SEP):
-                raise ValidationError(
-                    message=f"Prepend another value or escape leading '{VALUE_SEP}'",
-                    cursor_position=0,
-                )
+            try:
+                Track.split_tag(text)
+            except TagListInvalidException as e:
+                raise ValidationError(message=str(e), cursor_position=0)
 
 
 class YesNoValidator(Validator):

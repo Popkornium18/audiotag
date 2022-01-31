@@ -6,9 +6,8 @@ import os
 from prompt_toolkit import prompt
 from prompt_toolkit.formatted_text.html import HTML
 from audiotag import styles
-from audiotag.track import Track, Tag
+from audiotag.track import TagListInvalidException, Track, Tag, VALUE_SEP
 from audiotag.util import (
-    VALUE_SEP,
     ListValidator,
     NoSuchDirectoryError,
     NonEmptyValidator,
@@ -49,19 +48,21 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
         tag: "" if len(value) > 1 else value[0] for tag, value in tags.items()
     }
 
-    def _ask_artist(message: FormattedText):
-        artist_raw = prompt(
+    def _ask_artist(message: FormattedText) -> str:
+        return prompt(
             message=message,
             default=defaults[Tag.ARTIST],
             style=styles.style_track,
             bottom_toolbar=get_toolbar_text,
             validator=ListValidator(),
         )
-        artist_list = artist_raw.split(VALUE_SEP)
-        return [v.replace(r"\/", "/") for v in artist_list]
 
+    artist: list[str] = []
     if not compilation:
-        artist_tag = _ask_artist(message=formatted_text_from_str("<tag>Artist</tag>: "))
+        artist_multiple = _ask_artist(
+            message=formatted_text_from_str("<tag>Artist</tag>: ")
+        )
+        artist = Track.split_tag(artist_multiple)
 
     album = prompt(
         message=formatted_text_from_str("<tag>Albumtitle</tag>: "),
@@ -70,15 +71,14 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
         validator=NonEmptyValidator(),
     )
 
-    genre_raw = prompt(
+    genre_multiple = prompt(
         message=formatted_text_from_str("<tag>Genre</tag>: "),
         default=defaults[Tag.GENRE],
         style=styles.style_track,
         bottom_toolbar=get_toolbar_text,
         validator=ListValidator(),
     )
-    genre_list = genre_raw.split(VALUE_SEP)
-    genre_tag = [v.replace(r"\/", "/") for v in genre_list]
+    genre: list[str] = Track.split_tag(genre_multiple)
 
     date = int(
         prompt(
@@ -109,7 +109,10 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
                 msg_artist = (
                     "<tag>" + f"{prefix}" + f"Track {tracknumber}" + " - Artist</tag>: "
                 )
-                artist_tag = _ask_artist(message=formatted_text_from_str(msg_artist))
+                artist_multiple = _ask_artist(
+                    message=formatted_text_from_str(msg_artist)
+                )
+                artist = Track.split_tag(artist_multiple)
 
             msg_title = (
                 "<tag>"
@@ -124,8 +127,8 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
                 style=styles.style_track,
                 validator=NonEmptyValidator(),
             )
-            track.artist = artist_tag  # type: ignore
-            track.genre = genre_tag  # type: ignore
+            track.artist = artist
+            track.genre = genre
             track.title = title
             track.album = album
             track.date = date
@@ -146,7 +149,11 @@ def set_mode(
 ) -> int:
     tracklist = open_tracks(strings_to_paths(files))
     for track in tracklist:
-        set_modified = track.set_tags(set_tags)
+        try:
+            set_modified = track.set_tags(set_tags)
+        except TagListInvalidException as e:
+            print(e)
+            return 1
         del_modified = track.remove_tags(remove_tags)
         if set_modified or del_modified:
             track.save()

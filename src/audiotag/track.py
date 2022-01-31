@@ -10,6 +10,17 @@ from prompt_toolkit.formatted_text import HTML
 if TYPE_CHECKING:
     from typing import Optional, Any
 
+VALUE_SEP = "//"
+
+
+class TagListInvalidException(Exception):
+    def __init__(self, index: int, input: str):
+        self.index = index
+        self.input = input
+
+    def __str__(self):
+        return f"Value {self.index+1} in '{self.input}' is invalid"
+
 
 class Tag(Enum):
     """Enum with common tag strings"""
@@ -55,6 +66,17 @@ class Track:
     def __repr__(self) -> str:
         return f"Track('{str(self.path)}')"
 
+    @staticmethod
+    def split_tag(input_text: str) -> list[Any]:
+        """Splits a string that contains a separator into a list"""
+        input_list = input_text.split(VALUE_SEP)
+        input_split = [v.replace(r"\/", "/") for v in input_list]
+
+        for i, value in enumerate(input_split):
+            if not value:
+                raise TagListInvalidException(index=i, input=input_text)
+        return input_split
+
     @property
     def encoder(self) -> str:
         encoder = self._get_tag(Tag.ENCODER)
@@ -66,13 +88,8 @@ class Track:
         return artist if artist else [""]
 
     @artist.setter
-    def artist(self, artist: list[str] | str) -> None:
-        if isinstance(artist, str):
-            self._file.tags[Tag.ARTIST.value] = [artist]
-        elif isinstance(artist, list):
-            self._file.tags[Tag.ARTIST.value] = artist
-        else:
-            raise ValueError(f"Expected str or list(str), got {type(artist)}")
+    def artist(self, artist: list[str]) -> None:
+        self._file.tags[Tag.ARTIST.value] = artist
 
     @property
     def date(self) -> int:
@@ -89,13 +106,8 @@ class Track:
         return genre if genre else [""]
 
     @genre.setter
-    def genre(self, genre: str | list[str]) -> None:
-        if isinstance(genre, str):
-            self._file.tags[Tag.GENRE.value] = [genre]
-        elif isinstance(genre, list):
-            self._file.tags[Tag.GENRE.value] = genre
-        else:
-            raise ValueError(f"Expected str or list(str), got {type(genre)}")
+    def genre(self, genre: list[str]) -> None:
+        self._file.tags[Tag.GENRE.value] = genre
 
     @property
     def album(self) -> str:
@@ -270,8 +282,13 @@ class Track:
         """Set the new tags from the given dictionary and return if the tags have changed"""
         old_tags = self._file.tags.copy()
         for tag, value in tags.items():
-            value_str = str(value) if isinstance(value, int) else value
-            self._file.tags[tag.value] = [value_str]
+            if isinstance(value, int):
+                self._file.tags[tag.value] = [str(value)]
+            elif tag in [Tag.ARTIST, Tag.GENRE]:
+                value_list: list[str] = Track.split_tag(value)
+                self._file.tags[tag.value] = value_list
+            else:
+                self._file.tags[tag.value] = [value]
         return not self._file.tags == old_tags
 
     def remove_tags(self, tags: set[Tag]) -> bool | Any:
