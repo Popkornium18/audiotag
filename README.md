@@ -47,6 +47,7 @@ Multiple values per tag will be printed as a list.
 $ audiotag print *.flac
 Filename: /path/to/files/1 - At Giza.flac
 ALBUM: Conference of the Birds
+ALBUMARTIST: Om
 ARTIST: Om
 DATE: 2006
 DISCNUMBER: 1
@@ -59,6 +60,7 @@ TRACKTOTAL: 2
 
 Filename: /path/to/files/2 - Flight of the Eagle.flac
 ALBUM: Conference of the Birds
+ALBUMARTIST: Om
 ARTIST: Om
 DATE: 2006
 DISCNUMBER: 1
@@ -96,6 +98,7 @@ If you want to set the tags in a non-interactive way you can use the `set` comma
 You can choose from these options:
 
 *  `--artist="Example"`
+*  `--albumartist="Example"`
 *  `--title="Example"`
 *  `--album="Example"`
 *  `--date=2000`
@@ -111,6 +114,7 @@ If you want to add a literal `//` you have to escape it like this `\/\/`.
 If you want to remove tags you can choose these options:
 
 *  `--noartist`
+*  `--noalbumartist`
 *  `--notitle`
 *  `--noalbum`
 *  `--nodate`
