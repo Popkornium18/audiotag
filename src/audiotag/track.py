@@ -104,7 +104,10 @@ class Track:
     @property
     def date(self) -> int:
         date = self._get_tag(Tag.DATE)
-        return int(date[0]) if date else 0
+        try:
+            return int(date[0]) if date else 0
+        except ValueError:
+            return 0
 
     @date.setter
     def date(self, date: int) -> None:
@@ -140,7 +143,10 @@ class Track:
     @property
     def tracknumber(self) -> int:
         tracknumber = self._get_tag(Tag.TRACKNUMBER)
-        return int(tracknumber[0]) if tracknumber else 0
+        try:
+            return int(tracknumber[0]) if tracknumber else 0
+        except ValueError:
+            return 0
 
     @tracknumber.setter
     def tracknumber(self, tracknumber: int) -> None:
@@ -155,7 +161,10 @@ class Track:
     @property
     def tracktotal(self) -> int:
         tracktotal = self._get_tag(Tag.TRACKTOTAL)
-        return int(tracktotal[0]) if tracktotal else 0
+        try:
+            return int(tracktotal[0]) if tracktotal else 0
+        except ValueError:
+            return 0
 
     @tracktotal.setter
     def tracktotal(self, tracktotal: int) -> None:

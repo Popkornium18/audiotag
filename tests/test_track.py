@@ -177,6 +177,15 @@ def test_discnumber_disctotal(audio_file: Track):
 
 
 @pytest.mark.usefixtures("audio_file")
+def test_invalid_integer_value(audio_file: Track):
+    audio_file._file.tags["DATE"] = ["SomeString"]
+    audio_file.save()
+    audio_file.close()
+    audio_file = Track(audio_file.path)
+    assert audio_file.date == 0
+
+
+@pytest.mark.usefixtures("audio_file")
 def test_tracknumber_tracktotal(audio_file: Track):
     with pytest.raises(ValueError):
         audio_file.tracknumber = 0
