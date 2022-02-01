@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 from prompt_toolkit import HTML
+from prompt_toolkit.formatted_text import html
 from prompt_toolkit.formatted_text.base import FormattedText, to_formatted_text
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.shortcuts.prompt import prompt
@@ -35,7 +36,7 @@ def get_toolbar_text():
         return HTML(f"<b>Hint</b>: Use '<i>{VALUE_SEP}</i>' to input multiple values")
     else:
         values = text.split(VALUE_SEP)
-        values_escaped = [v.replace(r"\/", "/") for v in values]
+        values_escaped = [html.html_escape(v.replace(r"\/", "/")) for v in values]
         return formatted_text_from_str(
             f"<b>Values</b>: <u>{'</u>, <u>'.join(values_escaped)}</u>"
         )
