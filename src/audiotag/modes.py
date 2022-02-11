@@ -4,7 +4,7 @@ import sys
 from typing import TYPE_CHECKING
 import os
 from prompt_toolkit import prompt
-from prompt_toolkit.formatted_text.html import HTML
+from prompt_toolkit.formatted_text import html
 from audiotag import styles
 from audiotag.track import TagListInvalidException, Track, Tag, VALUE_SEP
 from audiotag.util import (
@@ -113,8 +113,8 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
     for discnumber, disc in enumerate(discs, start=1):
         tracktotal = len(disc)
         for tracknumber, track in enumerate(disc, start=1):
-            msg_filename: str | HTML = (
-                HTML(f"<b>File</b>: <i>{track.path.name}</i>")
+            msg_filename: str | html.HTML = (
+                html.HTML(f"<b>File</b>: <i>{html.html_escape(track.path.name)}</i>")
                 if sys.stdout.isatty()
                 else f"File: {track.path.name}"
             )
