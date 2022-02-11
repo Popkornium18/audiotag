@@ -1,7 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
-from prompt_toolkit import HTML
 from prompt_toolkit.formatted_text import html
 from prompt_toolkit.formatted_text.base import FormattedText, to_formatted_text
 from prompt_toolkit.application.current import get_app
@@ -27,13 +26,15 @@ def formatted_text_from_str(text: str) -> FormattedText:
     """
     Creates FormattedText from a string containing HTML tags
     """
-    return to_formatted_text(HTML(text))
+    return to_formatted_text(html.HTML(text))
 
 
 def get_toolbar_text():
     text = get_app().current_buffer.text
     if VALUE_SEP not in text:
-        return HTML(f"<b>Hint</b>: Use '<i>{VALUE_SEP}</i>' to input multiple values")
+        return html.HTML(
+            f"<b>Hint</b>: Use '<i>{VALUE_SEP}</i>' to input multiple values"
+        )
     else:
         values = text.split(VALUE_SEP)
         values_escaped = [html.html_escape(v.replace(r"\/", "/")) for v in values]
@@ -141,11 +142,11 @@ def list_files(directory: Path) -> list[Path]:
     return children
 
 
-def print_to_console(text: str | HTML) -> None:
+def print_to_console(text: str | html.HTML) -> None:
     """
     Prints the given text as styled if it is HTML or plain text if it is a str
     """
-    if isinstance(text, HTML):
+    if isinstance(text, html.HTML):
         print_formatted_text(to_formatted_text(text), style=styles.style_track)
     elif isinstance(text, str):
         print(text)
