@@ -17,7 +17,7 @@ class FakeTag(Enum):
     """Enum for fake tag values used in testing"""
 
     ARTIST = ["artist"]
-    ALBUMARTIST = "artist"
+    ALBUMARTIST = ["artist"]
     ALBUM = "album"
     GENRE = ["genre"]
     DATE = 2000
