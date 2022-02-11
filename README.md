@@ -45,29 +45,29 @@ Multiple values per tag will be printed as a list.
 
 ```
 $ audiotag print *.flac
-Filename: /path/to/files/1 - At Giza.flac
-ALBUM: Conference of the Birds
-ALBUMARTIST: Om
-ARTIST: Om
-DATE: 2006
+Filename: 1 - Nova.flac
+ALBUM: Nova/Moth
+ALBUMARTIST: Burial & Four Tet
+ARTIST: Burial, Four Tet
+DATE: 2022
 DISCNUMBER: 1
 DISCTOTAL: 1
-ENCODER: Lavf58.12.100
-GENRE: Doom Metal
-TITLE: At Giza
+ENCODER: Lavf58.76.100
+GENRE: Electronic, UK Garage, Future Garage
+TITLE: Nova
 TRACKNUMBER: 1
 TRACKTOTAL: 2
 
-Filename: /path/to/files/2 - Flight of the Eagle.flac
-ALBUM: Conference of the Birds
-ALBUMARTIST: Om
-ARTIST: Om
-DATE: 2006
+Filename: 2 - Moth.flac
+ALBUM: Nova/Moth
+ALBUMARTIST: Burial & Four Tet
+ARTIST: Burial, Four Tet
+DATE: 2022
 DISCNUMBER: 1
 DISCTOTAL: 1
-ENCODER: Lavf58.12.100
-GENRE: Doom Metal
-TITLE: Flight of the Eagle
+ENCODER: Lavf58.76.100
+GENRE: Electronic, UK Garage, Future Garage
+TITLE: Moth
 TRACKNUMBER: 2
 TRACKTOTAL: 2
 ```
@@ -77,17 +77,19 @@ TRACKTOTAL: 2
 The `interactive` subcommand interprets all given files as a single album and asks for all the necessary information.
 If the the files are in different directories, audiotag assumes that each directory is a disk of a multi-disc release.
 The `TRACKTOTAL` and `DISCTOTAL` tags are set automatically.
+Multiple values have to be seperated by `//`.
 
 ```
 $ audiotag interactive *.flac
-Artist: Om
-Albumtitle: Conference of the Birds
-Genre: Doom Metal
-Year: 2006
-1 - At Giza.flac
-Title 1: At Giza
-2 - Flight of the Eagle.flac
-Title 2: Flight of the Eagle
+Artist: Burial//Four Tet
+Album Artist: Burial & Four Tet
+Albumtitle: Nova/Moth
+Genre: Electronic//UK Garage//Future Garage
+Year: 2022
+File: 1 - Nova.flac
+Track 1: Nova
+File: 2 - Moth.flac
+Track 2: Moth
 ```
 
 If you pass the `--compilation` flag, audiotag will ask the artist of each track.
@@ -128,7 +130,7 @@ You can combine these options as you like.
 Here is an example:
 
 ```
-$ audiotag set --artist=Om --album="Conference of the Birds" --nodiscnumber 01-at_giza.flac
+$ audiotag set --artist="Burial & Four Tet" --album="Nova/Moth" --nodiscnumber 01-nova.flac
 ```
 
 ### Clean
@@ -159,12 +161,12 @@ Audiotag adds the extension to the output file name for you.
 
 ```
 $ ls
-01-at_giza.flac  02-flight_of_the_eagle.flac
+01-nova.flac  02-moth.flac
 
 $ audiotag rename *.flac
 
 $ ls
-'1 - At Giza.flac'  '2 - Flight of the Eagle.flac'
+'1 - Nova.flac'  '2 - Moth.flac'
 ```
 
 If the new filename already exists Audiotag will ask if you want to overwrite the existing file. This check can be disabled with the `-f` or `--force` option.
