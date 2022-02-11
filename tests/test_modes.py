@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import shutil
 import pytest
-from audiotag.track import Track, Tag
+from audiotag.track import Track, Tag, VALUE_SEP
 from audiotag.modes import (
     clean_mode,
     copy_mode,
@@ -186,19 +186,30 @@ def test_rename_mode_existing(audio_file: Track):
 @pytest.mark.usefixtures("audio_file")
 def test_set_mode(audio_file: Track):
     audio_file.close()
-    newartist = "SOMEARTIST"
+    newartist = ["ARTIST1", "ARTIST2"]
+    newalbumartist = ["ALBUMARTIST1", "ALBUMARTIST2"]
+    newgenre = ["GENRE1", "GENRE2"]
     newtracknum = 10
     assert audio_file.has_tag(Tag.TITLE)
-    assert not audio_file.artist == [newartist]
+    assert not audio_file.artist == newartist
+    assert not audio_file.album_artist == newalbumartist
+    assert not audio_file.genre == newgenre
     assert not audio_file.tracknumber == newtracknum
     error_code = set_mode(
         files=[str(audio_file.path)],
         remove_tags={Tag.TITLE},
-        set_tags={Tag.ARTIST: newartist, Tag.TRACKNUMBER: newtracknum},
+        set_tags={
+            Tag.ARTIST: VALUE_SEP.join(newartist),
+            Tag.ALBUMARTIST: VALUE_SEP.join(newalbumartist),
+            Tag.GENRE: VALUE_SEP.join(newgenre),
+            Tag.TRACKNUMBER: newtracknum,
+        },
     )
     audio_file = Track(audio_file.path)
     assert not error_code
     assert not audio_file.has_tag(Tag.TITLE)
-    assert audio_file.artist == [newartist]
+    assert audio_file.artist == newartist
+    assert audio_file.album_artist == newalbumartist
+    assert audio_file.genre == newgenre
     assert audio_file.tracknumber == newtracknum
     audio_file.close()

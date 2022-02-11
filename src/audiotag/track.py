@@ -307,7 +307,7 @@ class Track:
         for tag, value in tags.items():
             if isinstance(value, int):
                 self._file.tags[tag.value] = [str(value)]
-            elif tag in [Tag.ARTIST, Tag.GENRE]:
+            elif tag in [Tag.ARTIST, Tag.ALBUMARTIST, Tag.GENRE]:
                 value_list: list[str] = Track.split_tag(value)
                 self._file.tags[tag.value] = value_list
             else:
