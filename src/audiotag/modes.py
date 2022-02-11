@@ -40,7 +40,7 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
 
     tags: dict[Tag, list[str]] = {
         Tag.ARTIST: list({VALUE_SEP.join(t.artist) for t in tracklist}),
-        Tag.ALBUMARTIST: list({t.album_artist for t in tracklist}),
+        Tag.ALBUMARTIST: list({VALUE_SEP.join(t.album_artist) for t in tracklist}),
         Tag.ALBUM: list({t.album for t in tracklist}),
         Tag.GENRE: list({VALUE_SEP.join(t.genre) for t in tracklist}),
         Tag.DATE: list({"" if t.date == 0 else str(t.date) for t in tracklist}),
@@ -59,7 +59,7 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
         )
 
     artist: list[str] = []
-    album_artist: str = ""
+    album_artist: list[str] = []
     if not compilation:
         artist_multiple = _ask_artist(
             message=formatted_text_from_str("<tag>Artist</tag>: "),
@@ -67,17 +67,18 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
         )
         artist = Track.split_tag(artist_multiple)
         if len(artist) == 1:
-            album_artist = artist[0]
+            album_artist = artist
         else:
-            album_artist = prompt(
+            album_artist_multiple = prompt(
                 message=formatted_text_from_str("<tag>Album Artist</tag>: "),
                 default=defaults[Tag.ALBUMARTIST],
                 style=styles.style_track,
-                validator=NonEmptyValidator(),
+                validator=ListValidator(),
             )
+            album_artist = Track.split_tag(album_artist_multiple)
 
     else:
-        album_artist = "Various Artists"
+        album_artist = ["Various Artists"]
 
     album = prompt(
         message=formatted_text_from_str("<tag>Albumtitle</tag>: "),

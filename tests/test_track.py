@@ -138,6 +138,16 @@ def test_default_tags(audio_file: Track):
     assert audio_file.disctotal == 0
 
 
+@pytest.mark.parametrize(
+    "invalid",
+    ["//a", "a//", "a////a", "//"],
+)
+def test_tag_invalid_list(invalid: str):
+    with pytest.raises(TagListInvalidException):
+        Track.split_tag(invalid)
+    pass
+
+
 @pytest.mark.usefixtures("audio_file")
 def test_trivial_tags(audio_file: Track):
     audio_file.clear_tags()

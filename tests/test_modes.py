@@ -25,7 +25,7 @@ def test_print_mode(audio_file: Track, artists: list[str], capfd):
     audio_file.close()
     expected = f"""Filename: {str(audio_file.path)}
 {Tag.ALBUM.name}: {FakeTag.ALBUM.value}
-{Tag.ALBUMARTIST.name}: {FakeTag.ALBUMARTIST.value}
+{Tag.ALBUMARTIST.name}: {FakeTag.ALBUMARTIST.value[0]}
 {Tag.ARTIST.name}: {artists[0] if len(artists) == 1 else ", ".join(artists)}
 {Tag.DATE.name}: {str(FakeTag.DATE.value)}
 {Tag.DISCNUMBER.name}: {str(FakeTag.DISCNUMBER.value)}
