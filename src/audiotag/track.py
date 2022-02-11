@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import taglib
 from enum import Enum
 from pathlib import Path
-from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.formatted_text import html
 
 if TYPE_CHECKING:
     from typing import Optional, Any
@@ -228,19 +228,23 @@ class Track:
             string += f"{tag}: {', '.join([f'{v}' for v in value])}\n"
         return string
 
-    def tags_html(self) -> HTML:
+    def tags_html(self) -> html.HTML:
         """Format tags as a HTML string. The content is the same as Track.tags_string()"""
-        string = f"<tag>Filename</tag>: <path>{str(self.path)}</path>\n"
+        path_escaped = html.html_escape(str(self.path))
+        string = f"<tag>Filename</tag>: <path>{path_escaped}</path>\n"
         for tag, value in self._file.tags.items():
+            value_escaped = [html.html_escape(v) for v in value]
             value_format = (
-                ", ".join([f"<valuemultiple>{v}</valuemultiple>" for v in value])
+                ", ".join(
+                    [f"<valuemultiple>{v}</valuemultiple>" for v in value_escaped]
+                )
                 if len(value) > 1
-                else value[0]
+                else value_escaped[0]
             )
             string += f"<tag>{tag}</tag>: {value_format}\n"
-        return HTML(string)
+        return html.HTML(string)
 
-    def format_tags(self, as_html: bool) -> str | HTML:
+    def format_tags(self, as_html: bool) -> str | html.HTML:
         """Format tags as HTML or str"""
         return self.tags_html() if as_html else self.tags_string()
 
