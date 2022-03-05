@@ -1,9 +1,10 @@
 from __future__ import annotations
 from pathlib import Path
-import pytest
 import shutil
+import pytest
+from audiotag import config
 from conftest import FakeTag
-from audiotag.track import TagListInvalidException, Track, Tag, Pattern
+from audiotag.track import TagListInvalidException, Track, Tag
 
 
 @pytest.mark.usefixtures("audio_file")
@@ -234,7 +235,7 @@ def test_format_missing_tags(audio_file: Track):
     "pattern,artists,disctotal,discnumber,tracktotal,expected",
     [
         (
-            Pattern.SINGLE_DISC.value,
+            config.pattern_single_disc,
             FakeTag.ARTIST.value,
             1,
             1,
@@ -243,7 +244,7 @@ def test_format_missing_tags(audio_file: Track):
         ),
         ("", FakeTag.ARTIST.value, 1, 1, 1, f"1 - {FakeTag.TITLE.value}"),
         (
-            Pattern.MULTI_DISC.value,
+            config.pattern_multi_disc,
             FakeTag.ARTIST.value,
             10,
             2,

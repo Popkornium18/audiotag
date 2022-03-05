@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import pytest
 from pathlib import Path
-import audiotag.util as util
+import pytest
+from audiotag import util
 
 if TYPE_CHECKING:
     from audiotag.track import Track
