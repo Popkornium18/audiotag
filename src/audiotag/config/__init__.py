@@ -12,7 +12,7 @@ class InvalidConfigException(Exception):
 
 
 _dirs = AppDirs(appname="audiotag")
-_config_file = Path(_dirs.user_config_dir + "/audiotag.ini")
+_config_file = Path(_dirs.user_config_dir) / "config.ini"
 
 _config = configparser.ConfigParser()
 _config.read(_config_file)
