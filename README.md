@@ -177,8 +177,31 @@ The filenames are sorted alphabetically before they are matched.
 You may also specify a _single_ file as source and destination.
 Note that the `ENCODER` tag ist _not_ copied.
 
+## Config File
+
+The config file is located here:
+
+* **Linux**: `~/.config/audiotag/config.ini` or in `$XDG_CONFIG_HOME`, if defined
+* **MacOS**: `~/Library/Preferences/audiotag/config.ini`
+* **Win**: `C:\Users\<username>\AppData\Local\audiotag\audiotag\config.ini`
+
+These are the default values:
+
+```ini
+[global]
+; Input key bindings. 'emacs' or 'vi'
+editing_mode = emacs
+; Character for separating multiple tags
+value_separator = /
+; Rename pattern for single disc releases
+pattern_single_disc = {N} - {T}
+; Rename pattern for multi disc releases
+pattern_multi_disc = {D}-{N} - {T}
+```
+
 ## Dependencies
 
 The following dependencies are needed to run audiotag:
-* [pytaglib](https://pypi.org/project/pytaglib/): Python wrapper for accessing TagLib
+* [appdirs](https://pypi.org/project/appdirs/): Standard file locations for multiple platforms
 * [prompt-toolkit](https://pypi.org/project/prompt-toolkit/): Better console I/O
+* [pytaglib](https://pypi.org/project/pytaglib/): Python wrapper for accessing TagLib
