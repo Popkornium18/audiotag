@@ -8,6 +8,7 @@ from prompt_toolkit.shortcuts.prompt import prompt
 from prompt_toolkit.shortcuts.utils import print_formatted_text
 from prompt_toolkit.validation import ValidationError, Validator
 from audiotag import styles
+import audiotag.config as config
 from audiotag.track import TagListInvalidException, Track, VALUE_SEP
 
 if TYPE_CHECKING:
@@ -37,7 +38,9 @@ def get_toolbar_text():
         )
     else:
         values = text.split(VALUE_SEP)
-        values_escaped = [html.html_escape(v.replace(r"\/", "/")) for v in values]
+        values_escaped = [
+            html.html_escape(v.replace(f"\\{VALUE_SEP}", VALUE_SEP)) for v in values
+        ]
         return formatted_text_from_str(
             f"<b>Values</b>: <u>{'</u>, <u>'.join(values_escaped)}</u>"
         )
@@ -100,6 +103,7 @@ def yes_no(question: str) -> bool:
     """
 
     answer = prompt(
+        editing_mode=config.editing_mode,
         message=question,
         default="y",
         validator=YesNoValidator(),

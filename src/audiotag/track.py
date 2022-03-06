@@ -2,15 +2,16 @@ from __future__ import annotations
 import functools
 import math
 from typing import TYPE_CHECKING
-import taglib
 from enum import Enum
 from pathlib import Path
+import taglib
 from prompt_toolkit.formatted_text import html
+from audiotag import config
 
 if TYPE_CHECKING:
     from typing import Optional, Any
 
-VALUE_SEP = "//"
+VALUE_SEP = 2 * config.value_sep
 
 
 class TagListInvalidException(Exception):
@@ -39,13 +40,6 @@ class Tag(Enum):
     TRACKTOTAL = "TRACKTOTAL"
 
 
-class Pattern(Enum):
-    """Enum with default patterns for filenames"""
-
-    SINGLE_DISC = "{N} - {T}"
-    MULTI_DISC = "{D}-{N} - {T}"
-
-
 @functools.total_ordering
 class Track:
 
@@ -71,7 +65,10 @@ class Track:
     def split_tag(input_text: str) -> list[Any]:
         """Splits a string that contains a separator into a list"""
         input_list = input_text.split(VALUE_SEP)
-        input_split = [v.replace(r"\/", "/") for v in input_list]
+        value_sep_half = list(VALUE_SEP)[0]
+        input_split = [
+            v.replace(f"\\{value_sep_half}", value_sep_half) for v in input_list
+        ]
 
         for i, value in enumerate(input_split):
             if not value:
@@ -272,9 +269,9 @@ class Track:
 
         if not pattern:
             pattern = (
-                Pattern.SINGLE_DISC.value
+                config.pattern_single_disc
                 if self.disctotal <= 1
-                else Pattern.MULTI_DISC.value
+                else config.pattern_multi_disc
             )
 
         def replace_forbidden(text: str) -> str:

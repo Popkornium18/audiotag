@@ -3,9 +3,9 @@ from pathlib import Path
 import sys
 from typing import TYPE_CHECKING
 import os
-from prompt_toolkit import prompt
 from prompt_toolkit.formatted_text import html
-from audiotag import styles
+from prompt_toolkit.shortcuts.prompt import PromptSession
+from audiotag import config, styles
 from audiotag.track import TagListInvalidException, Track, Tag, VALUE_SEP
 from audiotag.util import (
     ListValidator,
@@ -49,14 +49,17 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
         tag: "" if len(value) > 1 else value[0] for tag, value in tags.items()
     }
 
+    session = PromptSession(editing_mode=config.editing_mode)  # type: ignore[var-annotated]
+
     def _ask_artist(message: FormattedText, default: str) -> str:
-        return prompt(
+        artist: str = session.prompt(
             message=message,
             default=default,
             style=styles.style_track,
             bottom_toolbar=get_toolbar_text,
             validator=ListValidator(),
         )
+        return artist
 
     artist: list[str] = []
     album_artist: list[str] = []
@@ -69,7 +72,7 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
         if len(artist) == 1:
             album_artist = artist
         else:
-            album_artist_multiple = prompt(
+            album_artist_multiple = session.prompt(
                 message=formatted_text_from_str("<tag>Album Artist</tag>: "),
                 default=defaults[Tag.ALBUMARTIST],
                 style=styles.style_track,
@@ -80,14 +83,14 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
     else:
         album_artist = ["Various Artists"]
 
-    album = prompt(
+    album = session.prompt(
         message=formatted_text_from_str("<tag>Albumtitle</tag>: "),
         default=defaults[Tag.ALBUM],
         style=styles.style_track,
         validator=NonEmptyValidator(),
     )
 
-    genre_multiple = prompt(
+    genre_multiple = session.prompt(
         message=formatted_text_from_str("<tag>Genre</tag>: "),
         default=defaults[Tag.GENRE],
         style=styles.style_track,
@@ -97,7 +100,7 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
     genre: list[str] = Track.split_tag(genre_multiple)
 
     date = int(
-        prompt(
+        session.prompt(
             message=formatted_text_from_str("<tag>Date</tag>: "),
             default=defaults[Tag.DATE],
             style=styles.style_track,
@@ -138,7 +141,7 @@ def interactive_mode(files: list[str], compilation: bool) -> int:
                 + (" - Title" if compilation else "")
                 + "</tag>: "
             )
-            title = prompt(
+            title = session.prompt(
                 message=formatted_text_from_str(msg_title),
                 default=track.title,
                 style=styles.style_track,
