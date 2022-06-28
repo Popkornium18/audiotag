@@ -29,6 +29,7 @@ jobs:
     - name: Install GCC and header files (MacOS)
       if: ${{ matrix.os == 'macos-latest' }}
       run: |
+        brew update
         brew install taglib
     - name: Install dependencies
       run: |
