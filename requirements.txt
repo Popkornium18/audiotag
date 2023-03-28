@@ -1,3 +1,3 @@
 prompt-toolkit==3.0.38
-pytaglib==1.5.0
+pytaglib==2.0.0
 appdirs==1.4.4
